@@ -1,0 +1,232 @@
+/* Navbar */
+
+.navbar{
+	background-color: #313131;
+	box-shadow: 0 5px 10px #131313;
+	min-height: 65px !important;
+}
+
+.navbar-brand{
+	font-size: 20px !important;
+	color: #ffffff !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+	white-space: nowrap !important;
+	margin-bottom: 4px;
+	display: flex !important;
+	align-items: center;
+}
+
+.navbar-brand > img{
+	margin-right: 15px;
+	margin-top: 2px;
+}
+
+.nav-link{
+	font-size: 18px !important;
+	color: #ffffff !important;
+	padding-left: 0 !important;
+}
+
+.navbar-toggler{
+	border-color: #ffffff !important;
+}
+
+.nav-link > img{
+	width: 0px;
+}
+
+button:focus{
+	outline-width: 0px !important;
+}
+
+@media (min-width: 992px){
+	/* Styles only applied when navbar is in non-collapsed form */
+	.dropdown-menu {
+		right: auto !important;
+		left: 50% !important;
+		-webkit-transform: translate(-50%, 0) !important;
+		-o-transform: translate(-50%, 0) !important;
+		transform: translate(-50%, 0) !important;
+		text-align: center !important;
+	}
+
+	.nav-item{
+		margin-left: 15px;
+	}
+
+	#my-navbar > .btn{
+		border-width: 2px;
+		height: 35px;
+		font-size: 15px;
+		font-weight: 500;
+		line-height: 18px;
+		overflow-x: auto;
+	}
+
+	.navbar-nav > .nav-link{
+		margin-left: 15px;
+	}
+
+	.user-dropdown{
+		padding: 0px;
+		display: flex;
+		align-items: center; 
+	}
+
+	.nav-link > img{
+		width: 35px;
+		height: 35px;
+		border-radius: 17.5px;
+		margin-right: 8px;
+		width: initial !important;
+	}
+
+	.dropdown-toggle::after{
+		margin-left: 8px;
+		margin-bottom: -1px;
+	}
+}
+
+.dropdown-menu{
+	background-color: #121212 !important;
+}
+
+.dropdown-item{
+	font-size: 15px;
+	color: #ffffff !important;
+}
+
+.dropdown-item:hover{
+	background-color: #252525 !important;
+}
+
+/* Main */
+
+body{
+	margin: 0;
+	font-weight: 400;
+	color: #ffffff
+}
+
+main{
+	min-height: 100vh;
+	background-color: #1e1e1e;
+}
+
+br{
+	user-select: none;
+}
+
+h1{
+	font-size: 50px !important;
+	text-align: center !important;
+	font-weight: 100 !important;
+	margin-top: 30px !important;
+	color: #ffffff !important;
+}
+
+h2{
+	font-size: 30px !important;
+	text-align: center;
+	font-weight: 100 !important;
+	margin-top: 5px;
+	color: #ffffff !important;
+}
+
+.btn{
+	box-shadow: none !important;
+}
+
+.commands-section{
+	border-bottom-style: hidden;
+	width: 100%;
+    margin-bottom: 20px;
+	font-size: 16px;
+	margin-left: 20px;
+	margin-right: 20px;
+}
+
+.commands-section > tbody > tr > td{
+	padding: 8px;
+}
+
+/* Scrollbars */
+
+::-webkit-scrollbar{
+	background-color: #1e1e1e;
+	width: 14px;
+}
+
+::-webkit-scrollbar-thumb{
+	background-color: #272727;
+}
+
+::-webkit-scrollbar-corner{
+	background-color: #1e1e1e;
+}
+
+/* Footer */
+
+.footer{
+	width: 100%;
+	height: 65px;
+	display: flex;
+	align-items: center;
+	background-color: #313131;
+	box-shadow: 0 -5px 10px #131313;
+	position: absolute;
+	flex-direction: row;
+}
+
+.footer > * {
+	color: #ffffff;
+	font-size: 16px;
+	font-weight: 450;
+}
+
+.footer > .container > .footer-left{
+	float: left;
+}
+
+.footer > .container > .footer-right{
+	float: right;
+}
+
+.footer > .container > .footer-right > .nav{
+	font-size: 16px;
+}
+
+.footer-right > a {
+	margin-left: 4px;
+	margin-right: 4px;
+}
+
+@media (max-width: 992px){
+	.footer{
+		justify-content: center;
+	}
+	.footer > .container > .footer-left{
+		float: none;
+		text-align: center;
+	}
+	
+	.footer > .container > .footer-right{
+		float: none;
+		text-align: center;
+	}
+}
+
+/* Links */
+
+a{
+	text-decoration: none !important;
+}
+
+.link{
+	color: #03bfd6 !important;
+}
+
+.link:hover{
+	color: #038ed6 !important;
+}

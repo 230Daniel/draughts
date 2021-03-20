@@ -1,0 +1,5 @@
+src/checkers.frontend/node_modules
+src/checkers.frontend/build
+src/Checkers.Api/bin
+src/Checkers.Api/obj
+src/Checkers.Api/appsettings*
