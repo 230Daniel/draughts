@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.SignalR;
 
-namespace WSTest.Api.Models
+namespace Checkers.Api.Models
 {
     public class User
     {

@@ -9,9 +9,9 @@ export default class Game extends React.Component{
 			connection: null,
 			playing: false,
 			status: "Waiting for an opponent...",
-			board: null
+			board: null,
+			progress: 15
 		}
-
 		this.gameCode = this.props.match.params.gameCode;
 	}
 
@@ -22,10 +22,10 @@ export default class Game extends React.Component{
 		if (!this.state.playing){
 			return (
 				<div>
+					
 					<h1>Game Page</h1>
 					<h2>Game Code: {this.gameCode}</h2>
 					<p>{this.state.status}</p>
-					
 				</div>
 			);
 		}
@@ -42,7 +42,7 @@ export default class Game extends React.Component{
 				<p>{this.state.status}</p>
 				<span>turn: {this.state.turn}</span>
 				<div>
-					<span>{this.state.board.number}</span>
+					<span>{JSON.stringify(this.state.board)}</span>
 					<button onClick={() => this.takeTurn()}>Take Turn</button>
 				</div>
 				<button onClick={() => this.state.connection.invoke("cancelGame")}>Cancel Game</button>

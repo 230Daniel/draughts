@@ -1,12 +1,12 @@
+using Checkers.Api.Hubs;
+using Checkers.Api.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using WSTest.Api.Hubs;
-using WSTest.Api.Services;
 
-namespace WSTest.Api
+namespace Checkers.Api
 {
     public class Startup
     {

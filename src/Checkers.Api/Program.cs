@@ -1,7 +1,9 @@
+using Checkers.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
-namespace WSTest.Api
+namespace Checkers.Api
 {
     public class Program
     {
@@ -12,9 +14,11 @@ namespace WSTest.Api
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
+                .ConfigureLogging(builder => builder
+                    .ClearProviders()
+                    .AddProvider(new LoggerProvider()))
+                .ConfigureWebHostDefaults(webBuilder => webBuilder
+                    .UseStartup<Startup>()
+                );
     }
 }

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Checkers.Api.Hubs;
 using Microsoft.AspNetCore.SignalR;
-using WSTest.Api.Hubs;
 
-namespace WSTest.Api.Models
+namespace Checkers.Api.Models
 {
     public class Game
     {
@@ -56,7 +56,6 @@ namespace WSTest.Api.Models
         {
             if(NextPlayer != player) return;
             
-            Board.IncrementNumber();
             await PlayersConnection.SendAsync("BoardUpdated", Board);
 
             _turnNumber++;

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Checkers.Api.Models;
 using Microsoft.AspNetCore.SignalR;
-using WSTest.Api.Models;
 
-namespace WSTest.Api.Services
+namespace Checkers.Api.Services
 {
     public interface IUserService
     {

@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using WSTest.Api.Models;
-using WSTest.Api.Services;
+using Checkers.Api.Models;
+using Checkers.Api.Services;
 
-namespace WSTest.Api.Controllers
+namespace Checkers.Api.Controllers
 {
     public class GameController : Controller
     {

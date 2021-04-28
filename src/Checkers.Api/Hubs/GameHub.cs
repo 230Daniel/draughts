@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
+using Checkers.Api.Models;
+using Checkers.Api.Services;
 using Microsoft.AspNetCore.SignalR;
-using WSTest.Api.Models;
-using WSTest.Api.Services;
 
-namespace WSTest.Api.Hubs
+namespace Checkers.Api.Hubs
 {
     public class GameHub : Hub
     {
