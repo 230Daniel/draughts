@@ -24,7 +24,7 @@ namespace Checkers.Api
                 options.AddPolicy("frontend",
                     builder =>
                     {
-                        builder.WithOrigins("http://localhost:3000")
+                        builder.WithOrigins(Configuration.GetSection("AllowOrigins").Get<string[]>())
                             .AllowAnyMethod()
                             .AllowAnyHeader()
                             .AllowCredentials();

@@ -25,7 +25,7 @@ namespace Checkers.Api.Models
                 Piece.White(1, 5),
                 Piece.White(3, 5),
                 Piece.White(5, 5),
-                Piece.White(6, 5),
+                Piece.White(7, 5),
                 
                 
                 Piece.Black(0, 0),

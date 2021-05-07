@@ -2,6 +2,10 @@ import React from "react";
 import { Redirect } from "react-router-dom";
 import { HubConnectionBuilder } from "@aspnet/signalr";
 
+import Board from "../components/game/board.js";
+
+import "../styles/game.css";
+
 export default class Game extends React.Component{
 	constructor(props){
 		super(props);
@@ -37,15 +41,8 @@ export default class Game extends React.Component{
 			)
 		}
 		return(
-			<div>
-				<h1>Active Game</h1>
-				<p>{this.state.status}</p>
-				<span>turn: {this.state.turn}</span>
-				<div>
-					<span>{JSON.stringify(this.state.board)}</span>
-					<button onClick={() => this.takeTurn()}>Take Turn</button>
-				</div>
-				<button onClick={() => this.state.connection.invoke("cancelGame")}>Cancel Game</button>
+			<div className="game-container">
+				<Board board={this.state.board}/>
 			</div>
 		);
 	}
@@ -56,7 +53,7 @@ export default class Game extends React.Component{
 
 	async componentDidMount(){
 		var connection = new HubConnectionBuilder()
-		.withUrl("https://localhost:5001/gamehub")
+		.withUrl(`${window.BASE_URL}/gamehub`)
 		.build();
 
 		connection.on("gameStarted", (player) =>{

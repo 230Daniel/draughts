@@ -1,0 +1,7 @@
+.game-container{
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 15px;
+	height: calc(100vh - 65px);
+}

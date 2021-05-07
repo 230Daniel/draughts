@@ -34,11 +34,11 @@ namespace Checkers.Api.Models
         public async Task AddPlayerAsync(User player)
         {
             Players.Add(player);
-            if (Players.Count == 2)
+            if (Players.Count == 1)
             {
                 GameStatus = GameStatus.Playing;
                 await Player1Connection.SendAsync("GameStarted", 0);
-                await Player2Connection.SendAsync("GameStarted", 1);
+                //await Player2Connection.SendAsync("GameStarted", 1);
                 await PlayersConnection.SendAsync("BoardUpdated", Board);
                 await PlayersConnection.SendAsync("TurnChanged", 0);
             }

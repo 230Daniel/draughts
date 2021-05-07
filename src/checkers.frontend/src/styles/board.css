@@ -1,0 +1,65 @@
+.board{
+	width: calc(100vh - 65px - 30px);
+	height: calc(100vh - 65px - 30px);
+	max-width: calc(100vw - 30px);
+	max-height: calc(100vw - 30px);
+	background-color: black;
+	border-radius: 2.5%;
+
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	overflow: hidden;
+}
+
+.tile{
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.piece{
+	width: 75%;
+	height: 75%;
+	border-radius: 50%;
+	box-shadow: 3px 3px 2px rgb(56, 56, 56);
+	
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	position: relative;
+	top: 0px;
+	left: 0px;
+	transition: all .1s;
+}
+
+.piece-white{
+	background-color: white;
+}
+
+.piece-black{
+	background-color: gray;
+}
+
+.piece-inside{
+	width: 70%;
+	height: 70%;
+	border-radius: 50%;
+}
+
+.piece-white > .piece-inside{
+	background-color: rgb(224, 224, 224);
+	box-shadow: inset 2px 2px 1px rgb(169, 169, 169);
+}
+
+.piece-black > .piece-inside{
+	background-color: rgb(106, 106, 106);
+	box-shadow: inset 2px 2px 1px rgb(74, 74, 74);
+}
+
+.piece:hover{
+	top: -3px;
+	left: -3px;
+	box-shadow: 6px 6px 2px rgb(56, 56, 56);
+}

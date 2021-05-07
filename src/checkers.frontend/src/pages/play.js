@@ -28,13 +28,13 @@ export default class Play extends React.Component{
 	}
 
 	async createGame(){
-		var response = await fetch("https://localhost:5001/game/create", { method: "GET" });
+		var response = await fetch(`${window.BASE_URL}/game/create`, { method: "GET" });
 		var gameCode = await response.json();
 		await this.joinGame(gameCode);
 	}
 
 	async joinGame(gameCode){
-		var response = await fetch(`https://localhost:5001/game/${gameCode}`, { method: "GET" });
+		var response = await fetch(`${window.BASE_URL}/game/${gameCode}`, { method: "GET" });
 		if (response.status === 404) {
 			this.setState({invalidCode: true});
 			return;

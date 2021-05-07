@@ -13,7 +13,7 @@ export default class Index extends React.Component{
 				</Helmet>
 				<div className="index-container">
 					<div className="left">
-						<img src="/Checkers.png" alt=""/>
+						<img src="/checkers.png" alt=""/>
 					</div>
 					<div className="right">
 						<div>

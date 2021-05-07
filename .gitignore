@@ -3,5 +3,9 @@ src/checkers.frontend/build
 src/Checkers.Api/bin
 src/Checkers.Api/obj
 src/Checkers.Api/appsettings*
+src/Checkers.Api/Exceptions
+src/Checkers.Api/Logs
 src/.vs
 src/.vscode
+src/.idea
+src/checkers.frontend/public/config.js
