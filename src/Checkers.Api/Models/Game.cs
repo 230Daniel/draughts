@@ -34,11 +34,11 @@ namespace Checkers.Api.Models
         public async Task AddPlayerAsync(User player)
         {
             Players.Add(player);
-            if (Players.Count == 1)
+            if (Players.Count == 2)
             {
                 GameStatus = GameStatus.Playing;
                 await Player1Connection.SendAsync("GameStarted", 0);
-                //await Player2Connection.SendAsync("GameStarted", 1);
+                await Player2Connection.SendAsync("GameStarted", 1);
                 await PlayersConnection.SendAsync("BoardUpdated", Board);
                 await PlayersConnection.SendAsync("TurnChanged", 0);
             }
@@ -52,14 +52,19 @@ namespace Checkers.Api.Models
             await PlayersConnection.SendAsync("GameCanceled");
         }
 
-        public async Task TakeTurn(User player)
+        public async Task SubmitMove(User player, Position before, Position after)
         {
             if(NextPlayer != player) return;
-            
+
+            MoveResult moveResult = Board.Move(before, after);
+            if (moveResult == MoveResult.Invalid) return;
             await PlayersConnection.SendAsync("BoardUpdated", Board);
 
-            _turnNumber++;
-            await PlayersConnection.SendAsync("TurnChanged", _turnNumber % 2);
+            if (moveResult != MoveResult.Free)
+            {
+                _turnNumber++;
+                await PlayersConnection.SendAsync("TurnChanged", _turnNumber % 2);
+            }
         }
 
         void OnPlayerDisconnected(object sender, EventArgs e)

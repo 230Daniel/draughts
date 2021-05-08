@@ -44,6 +44,64 @@ namespace Checkers.Api.Models
                 Piece.Black(6, 2)
             };
         }
+
+        public MoveResult Move(Position before, Position after)
+        {
+            Piece piece = Pieces.First(x => x.Position == before);
+            
+            // Can not move piece onto another piece
+            if (Pieces.Any(x => x.Position == after))
+                return MoveResult.Invalid;
+            
+            // Piece could move diagonally 2 squares with an opponent piece underneath
+
+            bool left = after.X == before.X - 2;
+            bool right = after.X == before.X + 2;
+            bool up = after.Y == before.Y - 2;
+            bool down = after.Y == before.Y + 2;
+
+            if (left || right || up || down)
+            {
+                Piece taken = null;
+
+                if (left && up)
+                    taken = Pieces.FirstOrDefault(x => x.Position == (before.X - 1, before.Y - 1));
+                if (left && down)
+                    taken = Pieces.FirstOrDefault(x => x.Position == (before.X - 1, before.Y + 1));
+                if (right && up)
+                    taken = Pieces.FirstOrDefault(x => x.Position == (before.X + 1, before.Y - 1));
+                if (right && down)
+                    taken = Pieces.FirstOrDefault(x => x.Position == (before.X + 1, before.Y + 1));
+                
+                if (taken is null || taken.Colour == piece.Colour)
+                    return MoveResult.Invalid;
+                
+                Pieces.Remove(taken);
+                piece.Position = after;
+                
+                return MoveResult.Free;
+            }
+            
+            // Otherwise pieces must move diagonally one square
+            
+            left = after.X == before.X - 1;
+            right = after.X == before.X + 1;
+            up = after.Y == before.Y - 1;
+            down = after.Y == before.Y + 1;
+
+            if (!(left && up || left && down || right && up || right && down))
+                return MoveResult.Invalid;
+            
+            piece.Position = after;
+            return MoveResult.Valid;
+        }
+    }
+
+    public enum MoveResult
+    {
+        Invalid,
+        Valid,
+        Free
     }
 
     public class Piece

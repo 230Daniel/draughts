@@ -58,7 +58,7 @@
 	box-shadow: inset 2px 2px 1px rgb(74, 74, 74);
 }
 
-.piece:hover{
+.piece-selected{
 	top: -3px;
 	left: -3px;
 	box-shadow: 6px 6px 2px rgb(56, 56, 56);

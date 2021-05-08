@@ -36,12 +36,12 @@ namespace Checkers.Api.Hubs
             await game.CancelAsync();
         }
 
-        [HubMethodName("TakeTurn")]
-        public async Task TakeTurn()
+        [HubMethodName("SubmitMove")]
+        public async Task SubmitMove(int[] current, int[] destination)
         {
             User user = _userService.GetOrCreateUser(Context);
             Game game = _gameService.GetCurrentUserGame(user);
-            await game.TakeTurn(user);
+            await game.SubmitMove(user, current, destination);
         }
     }
 }

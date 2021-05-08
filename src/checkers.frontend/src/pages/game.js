@@ -14,7 +14,8 @@ export default class Game extends React.Component{
 			playing: false,
 			status: "Waiting for an opponent...",
 			board: null,
-			progress: 15
+			progress: 15,
+			player: null
 		}
 		this.gameCode = this.props.match.params.gameCode;
 	}
@@ -42,13 +43,17 @@ export default class Game extends React.Component{
 		}
 		return(
 			<div className="game-container">
-				<Board board={this.state.board}/>
+				<Board 
+				board={this.state.board}
+				player={this.state.player}
+				waitingForMove={this.state.turn === this.state.player}
+				submitMove={(current, destination) => this.submitMove(current, destination)}/>
 			</div>
 		);
 	}
 
-	takeTurn(){
-		this.state.connection.invoke("takeTurn");
+	submitMove(current, destination){
+		this.state.connection.invoke("submitMove", current, destination);
 	}
 
 	async componentDidMount(){
@@ -57,7 +62,7 @@ export default class Game extends React.Component{
 		.build();
 
 		connection.on("gameStarted", (player) =>{
-			this.setState({playing: true, status: `You are player ${player}`})
+			this.setState({playing: true, player: player})
 		});
 
 		connection.on("gameCanceled", () =>{

@@ -19,6 +19,12 @@ namespace Checkers.Api.Models
         public static implicit operator (int, int)(Position value)
             => (value.X, value.Y);
         
+        public static implicit operator Position(int[] value)
+            => new(value[0], value[1]);
+        
+        public static implicit operator int[](Position value)
+            => new int[]{value.X, value.Y};
+        
         public static bool operator ==(Position left, Position right)
             => left.Equals(right);
 
