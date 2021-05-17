@@ -46,7 +46,7 @@ export default class Board extends React.Component{
 	}
 
 	// this.props.player === 0
-	
+
 	getInitialTile(boardSize){
 		return true ? 0 : boardSize - 1;
 	}
@@ -74,23 +74,25 @@ export default class Board extends React.Component{
 		} else if(this.state.selectedTile) {
 
 			// A tile is already selected and another tile has been clicked
-			// We should validate and then submit the move
+			// We should submit the move
 
 			this.setState({
 				selectedTile: null
 			});
 
 			this.props.submitMove(this.state.selectedTile, tile.position);
-
+			
 		} else if(tile.props.piece) {
 
 			// No tile is selected and one with a piece has been clicked
 			// We should select this tile if it's a valid tile to select
 
-			if(this.props.forceMovePositions.length == 0 || this.props.forceMovePositions.some(x => coordinatesAreEqual(tile.position, x))){
-				this.setState({
-					selectedTile: tile.position
-				});
+			if(tile.props.piece.colour === this.props.player){
+				if(this.props.forcedMoves.length == 0 || this.props.forcedMoves.some(x => coordinatesAreEqual(tile.position, x[0]))){
+					this.setState({
+						selectedTile: tile.position
+					});
+				}
 			}
 		}
 	}

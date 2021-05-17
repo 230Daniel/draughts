@@ -12,7 +12,11 @@ namespace Checkers.Api.Models
         {
             Pieces = new List<Piece>
             {
-                Piece.White(1, 7),
+                Piece.White(7, 7),
+                Piece.Black(6, 6),
+                Piece.Black(4, 4),
+                Piece.Black(1, 1)
+                /*Piece.White(1, 7),
                 Piece.White(3, 7),
                 Piece.White(5, 7),
                 Piece.White(7, 7),
@@ -41,48 +45,40 @@ namespace Checkers.Api.Models
                 Piece.Black(0, 2),
                 Piece.Black(2, 2),
                 Piece.Black(4, 2),
-                Piece.Black(6, 2)
+                Piece.Black(6, 2)*/
             };
         }
 
         public MoveResult Move(Position before, Position after)
         {
             Piece piece = Pieces.First(x => x.Position == before);
+            Movement m = new(before, after);
             
-            // Can not move piece onto another piece
+            // Pieces must move diagonally
+            if(!m.IsDiagonal)
+                return MoveResult.Invalid();
+            
+            // Pieces must take other pieces whenever possible
+            List<(Position, Position)> forcedMoves = GetForcedMoves(piece.Colour);
+            if (forcedMoves.Count > 0 && !forcedMoves.Any(x => x.Item1 == before && x.Item2 == after))
+                return MoveResult.Invalid();
+            
+            // Pieces can not be on top of one another
             if (Pieces.Any(x => x.Position == after))
                 return MoveResult.Invalid();
 
-            // Only kings can move in the opposite direction
-            
-            bool canMoveDown = true;
-            bool canMoveUp = true;
-                
-            if (piece.Colour == PieceColour.White) canMoveDown = piece.IsKing;
-            else canMoveUp = piece.IsKing;
-
-            if ((before.Y < after.Y) && !canMoveDown || (before.Y > after.Y && !canMoveUp)) 
+            // Pieces can not move backwards unless they're a king
+            if (m.Down && !piece.CanMoveDown || m.Up && !piece.CanMoveUp) 
                 return MoveResult.Invalid();
             
-            // Piece could move diagonally 2 squares with an opponent piece underneath
-
-            bool left = after.X == before.X - 2;
-            bool right = after.X == before.X + 2;
-            bool up = after.Y == before.Y - 2;
-            bool down = after.Y == before.Y + 2;
-
-            if (left || right || up || down)
+            // Pieces can not move more than 2 squares
+            if(m.Magnitude > 2)
+                return MoveResult.Invalid();
+            
+            // Pieces must take an enemy piece while moving 2 squares
+            if (m.Magnitude == 2)
             {
-                Piece taken = null;
-
-                if (left && up)
-                    taken = Pieces.FirstOrDefault(x => x.Position == (before.X - 1, before.Y - 1));
-                if (left && down)
-                    taken = Pieces.FirstOrDefault(x => x.Position == (before.X - 1, before.Y + 1));
-                if (right && up)
-                    taken = Pieces.FirstOrDefault(x => x.Position == (before.X + 1, before.Y - 1));
-                if (right && down)
-                    taken = Pieces.FirstOrDefault(x => x.Position == (before.X + 1, before.Y + 1));
+                Piece taken = Pieces.FirstOrDefault(x => x.Position == m.GetJumpedPosition());
 
                 if (taken is null || taken.Colour == piece.Colour)
                     return MoveResult.Invalid();
@@ -93,20 +89,28 @@ namespace Checkers.Api.Models
                 return GetPiecesThatCanBeTaken(piece).Any() ? MoveResult.MoveAgain(after) : MoveResult.FinishMove();
             }
 
-            // Otherwise pieces must move diagonally one square
-            
-            left = after.X == before.X - 1;
-            right = after.X == before.X + 1;
-            up = after.Y == before.Y - 1;
-            down = after.Y == before.Y + 1;
-
-            if (!(left && up || left && down || right && up || right && down))
-                return MoveResult.Invalid();
-            
+            // The move passed all checks
             piece.Position = after;
             return MoveResult.FinishMove();
         }
 
+        public List<(Position, Position)> GetForcedMoves(PieceColour colour)
+        {
+            List<(Position, Position)> forcedMoves = new();
+            List<Piece> friendlyPieces = Pieces.Where(x => x.Colour == colour).ToList();
+
+            foreach (Piece friendlyPiece in friendlyPieces)
+            {
+                List<Piece> takablePieces = GetPiecesThatCanBeTaken(friendlyPiece);
+                forcedMoves.AddRange(
+                    takablePieces.Select(takablePiece => 
+                        Movement.ByTakingPiece(friendlyPiece.Position, takablePiece)
+                            .AsPositions()));
+            }
+
+            return forcedMoves;
+        }
+        
         public List<Piece> GetPiecesThatCanBeTaken(Piece piece)
         {
             bool canMoveDown = true;
@@ -151,41 +155,11 @@ namespace Checkers.Api.Models
 
             return takablePieces;
         }
-    }
 
-    public class MoveResult
-    {
-        public bool IsValid { get; private set; }
-        public bool IsFinished { get; private set; }
-        public Position PositionToMoveAgain { get; private set; }
-
-        public static MoveResult FinishMove() => new() { IsValid = true, IsFinished = true };
-        public static MoveResult MoveAgain(Position position) => new() { IsValid = true, IsFinished = false, PositionToMoveAgain = position };
-        public static MoveResult Invalid() => new() { IsValid = false, IsFinished = false };
-    }
-
-    public class Piece
-    {
-        public PieceColour Colour { get; set; }
-        public Position Position { get; set; }
-        public bool IsKing { get; set; }
-
-        public Piece(PieceColour colour, int x, int y)
+        public void PromoteKings()
         {
-            Colour = colour;
-            Position = (x, y);
+            foreach (Piece pieceToPromote in Pieces.Where(x => x.Colour == PieceColour.White && x.Position.Y == 0 || x.Colour == PieceColour.Black && x.Position.Y == 7))
+                pieceToPromote.IsKing = true;
         }
-
-        public static Piece White(int x, int y)
-            => new(PieceColour.White, x, y);
-        
-        public static Piece Black(int x, int y)
-            => new(PieceColour.Black, x, y);
-    }
-
-    public enum PieceColour
-    {
-        White,
-        Black
     }
 }

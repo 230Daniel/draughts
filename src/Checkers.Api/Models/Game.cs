@@ -42,6 +42,7 @@ namespace Checkers.Api.Models
                 await Player2Connection.SendAsync("GameStarted", 1);
                 await PlayersConnection.SendAsync("BoardUpdated", Board);
                 await PlayersConnection.SendAsync("TurnChanged", 0);
+                await PlayersConnection.SendAsync("setForcedMoves", ConvertMovesToTransportable(Board.GetForcedMoves(PieceColour.White)));
             }
 
             player.OnDisconnected += OnPlayerDisconnected;
@@ -56,22 +57,22 @@ namespace Checkers.Api.Models
         public async Task SubmitMove(User player, Position before, Position after)
         {
             if(NextPlayer != player) return;
+            PieceColour pieceColour = Players.IndexOf(player) == 0 ? PieceColour.White : PieceColour.Black;
 
             MoveResult moveResult = Board.Move(before, after);
             if (moveResult.IsValid)
             {
+                Board.PromoteKings();
                 await PlayersConnection.SendAsync("BoardUpdated", Board);
                 
                 if (moveResult.IsFinished)
                 {
                     _turnNumber++;
                     await PlayersConnection.SendAsync("TurnChanged", _turnNumber % 2);
-                    await NextPlayerConnection.SendAsync("ForceMovePositions", new int[][] { });
                 }
-                else
-                {
-                    await NextPlayerConnection.SendAsync("ForceMovePositions", new[] { moveResult.PositionToMoveAgain.AsTransportable() });
-                }
+
+                PieceColour nextPieceColour = moveResult.IsFinished ? pieceColour == PieceColour.White? PieceColour.Black : PieceColour.White : pieceColour;
+                await PlayersConnection.SendAsync("setForcedMoves", ConvertMovesToTransportable(Board.GetForcedMoves(nextPieceColour)));
             }
         }
 
@@ -83,6 +84,11 @@ namespace Checkers.Api.Models
         public Game()
         {
             Players = new List<User>();
+        }
+
+        static int[][][] ConvertMovesToTransportable(IEnumerable<(Position, Position)> moves)
+        {
+            return moves.Select(x => new []{x.Item1.AsTransportable(), x.Item2.AsTransportable()}).ToArray();
         }
     }
 

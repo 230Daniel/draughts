@@ -31,7 +31,17 @@ namespace Checkers.Api.Models
             => left.Equals(right);
 
         public static bool operator !=(Position left, Position right)
-            => left.Equals(right);
+            => !left.Equals(right);
+
+        public static Position operator +(Position position, Movement movement)
+            => (position.X + movement.ChangeInX, position.Y + movement.ChangeInY);
+        
+        public static Position operator -(Position position, Movement movement)
+        {
+            position.X -= movement.ChangeInX;
+            position.Y -= movement.ChangeInY;
+            return position;
+        }
         
         public bool Equals(Position other)
         {
