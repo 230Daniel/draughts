@@ -6,6 +6,7 @@ namespace Checkers.Api.Models
     {
         public int X { get; set; }
         public int Y { get; set; }
+        public bool IsValid => X is >= 0 and < 8 && Y is >= 0 and < 8;
 
         public Position(int x, int y)
         {

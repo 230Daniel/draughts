@@ -1,12 +1,15 @@
-﻿namespace Checkers.Api.Models
+﻿using System.Collections.Generic;
+
+namespace Checkers.Api.Models
 {
     public class Piece
     {
         public PieceColour Colour { get; set; }
         public Position Position { get; set; }
         public bool IsKing { get; set; }
-        public bool CanMoveUp => Colour == PieceColour.Black || IsKing; 
-        public bool CanMoveDown => Colour == PieceColour.White || IsKing;
+        public bool CanMoveUp => Colour == PieceColour.White || IsKing; 
+        public bool CanMoveDown => Colour == PieceColour.Black || IsKing;
+        public List<Position> PossibleMoves { get; set; }
 
         public Piece(PieceColour colour, int x, int y)
         {

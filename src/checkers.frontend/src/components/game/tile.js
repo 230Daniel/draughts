@@ -11,10 +11,13 @@ export default class Tile extends React.Component{
 	render(){
 		return (
 			<div style={{
-				backgroundColor: this.props.colour ? "#a45f16": "#ffd27b",
 				width: `${100 / this.props.boardSize}%`,
 				height: `${100 / this.props.boardSize}%`
-				}} className="tile"
+				}} 
+				className={`tile
+				${this.props.colour ? "tile-white" : "tile-black"}
+				${this.props.possible ? "tile-possible" : ""}
+				${this.props.forced ? "tile-forced" : ""}`}
 				onClick={() => this.onClicked()}>
 				{this.renderPiece()}
 			</div>

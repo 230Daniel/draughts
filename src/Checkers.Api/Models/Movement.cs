@@ -16,8 +16,8 @@ namespace Checkers.Api.Models
                 Direction value = Direction.None;
                 if (ChangeInX < 0) value |= Direction.Left;
                 if (ChangeInX > 0) value |= Direction.Right;
-                if (ChangeInY > 0) value |= Direction.Up;
-                if (ChangeInY < 0) value |= Direction.Down;
+                if (ChangeInY < 0) value |= Direction.Up;
+                if (ChangeInY > 0) value |= Direction.Down;
                 return value;
             }
         }

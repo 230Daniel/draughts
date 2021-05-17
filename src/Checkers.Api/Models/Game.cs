@@ -63,16 +63,21 @@ namespace Checkers.Api.Models
             if (moveResult.IsValid)
             {
                 Board.PromoteKings();
+                Board.ApplyPossibleMoves();
                 await PlayersConnection.SendAsync("BoardUpdated", Board);
                 
                 if (moveResult.IsFinished)
                 {
+                    Console.WriteLine($"{DateTime.Now} turn change");
                     _turnNumber++;
                     await PlayersConnection.SendAsync("TurnChanged", _turnNumber % 2);
                 }
 
                 PieceColour nextPieceColour = moveResult.IsFinished ? pieceColour == PieceColour.White? PieceColour.Black : PieceColour.White : pieceColour;
-                await PlayersConnection.SendAsync("setForcedMoves", ConvertMovesToTransportable(Board.GetForcedMoves(nextPieceColour)));
+                List<(Position, Position)> newForcedMoves = Board.GetForcedMoves(nextPieceColour);
+                if (!moveResult.IsFinished) newForcedMoves.RemoveAll(x => x.Item1 != moveResult.PositionToMoveAgain);
+                
+                await PlayersConnection.SendAsync("setForcedMoves", ConvertMovesToTransportable(newForcedMoves));
             }
         }
 

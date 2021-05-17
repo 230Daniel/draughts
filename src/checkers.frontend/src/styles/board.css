@@ -16,6 +16,23 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	transition: background-color 0.2s;
+}
+
+.tile-white{
+	background-color: #ffd27b;
+}
+
+.tile-black{
+	background-color: #a45f16;
+}
+
+.tile-possible{
+	background-color: #bfffad;
+}
+
+.tile-forced{
+	background-color: #bfadff;
 }
 
 .piece{
@@ -46,6 +63,9 @@
 	width: 70%;
 	height: 70%;
 	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .piece-white > .piece-inside{
@@ -64,11 +84,16 @@
 	box-shadow: 6px 6px 2px rgb(56, 56, 56);
 }
 
-.piece-king{
-	outline: 5px inset black;
+.piece-inside > img{
+	width: 70%;
+	height: 70%;
+	object-fit: scale-down;
 }
 
-.piece-forced{
-	outline: 5px inset yellowgreen;
+.piece-white > .piece-inside > img{
+	filter: invert(99%) sepia(85%) saturate(2%) hue-rotate(58deg) brightness(112%) contrast(100%);
 }
 
+.piece-black > .piece-inside > img{
+	filter: invert(52%) sepia(11%) saturate(0%) hue-rotate(272deg) brightness(94%) contrast(87%);
+}

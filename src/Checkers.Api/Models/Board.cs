@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Checkers.Api.Models
 {
@@ -11,11 +12,7 @@ namespace Checkers.Api.Models
         {
             Pieces = new List<Piece>
             {
-                Piece.White(7, 7),
-                Piece.Black(6, 6),
-                Piece.Black(4, 4),
-                Piece.Black(1, 1)
-                /*Piece.White(1, 7),
+                Piece.White(1, 7),
                 Piece.White(3, 7),
                 Piece.White(5, 7),
                 Piece.White(7, 7),
@@ -44,8 +41,11 @@ namespace Checkers.Api.Models
                 Piece.Black(0, 2),
                 Piece.Black(2, 2),
                 Piece.Black(4, 2),
-                Piece.Black(6, 2)*/
+                Piece.Black(6, 2)
             };
+            
+            PromoteKings();
+            ApplyPossibleMoves();
         }
 
         public MoveResult Move(Position before, Position after)
@@ -84,7 +84,7 @@ namespace Checkers.Api.Models
 
                 Pieces.Remove(taken);
                 piece.Position = after;
-                
+
                 return GetPiecesThatCanBeTaken(piece).Any() ? MoveResult.MoveAgain(after) : MoveResult.FinishMove();
             }
 
@@ -107,44 +107,42 @@ namespace Checkers.Api.Models
                             .AsPositions()));
             }
 
+            forcedMoves.RemoveAll(x => !x.Item2.IsValid);
             return forcedMoves;
         }
         
         public List<Piece> GetPiecesThatCanBeTaken(Piece piece)
         {
-            bool canMoveDown = true;
-            bool canMoveUp = true;
-                
-            if (piece.Colour == PieceColour.White) canMoveDown = piece.IsKing;
-            else canMoveUp = piece.IsKing;
-
             List<Piece> takablePieces = new();
             
-            if (canMoveUp)
+            if (piece.CanMoveUp)
             {
-                if (Pieces.All(x => x.Position != (piece.Position.X - 2, piece.Position.Y - 2)))
+                Position destination = (piece.Position.X - 2, piece.Position.Y - 2);
+                if (destination.IsValid && Pieces.All(x => x.Position != destination))
                 {
                     Piece takable = Pieces.FirstOrDefault(x =>
                         x.Colour != piece.Colour && x.Position == (piece.Position.X - 1, piece.Position.Y - 1));
                     if (takable is not null) takablePieces.Add(takable);
                 }
-                if (Pieces.All(x => x.Position != (piece.Position.X + 2, piece.Position.Y - 2)))
+                destination = (piece.Position.X + 2, piece.Position.Y - 2);
+                if (destination.IsValid && Pieces.All(x => x.Position != destination))
                 {
                     Piece takable = Pieces.FirstOrDefault(x =>
                         x.Colour != piece.Colour && x.Position == (piece.Position.X + 1, piece.Position.Y - 1));
                     if (takable is not null) takablePieces.Add(takable);
                 }
             }
-
-            if (canMoveDown)
+            if (piece.CanMoveDown)
             {
-                if (Pieces.All(x => x.Position != (piece.Position.X - 2, piece.Position.Y + 2)))
+                Position destination = (piece.Position.X - 2, piece.Position.Y + 2);
+                if (destination.IsValid && Pieces.All(x => x.Position != destination))
                 {
                     Piece takable = Pieces.FirstOrDefault(x =>
                         x.Colour != piece.Colour && x.Position == (piece.Position.X - 1, piece.Position.Y + 1));
                     if (takable is not null) takablePieces.Add(takable);
                 }
-                if (Pieces.All(x => x.Position != (piece.Position.X + 2, piece.Position.Y + 2)))
+                destination = (piece.Position.X + 2, piece.Position.Y + 2);
+                if (destination.IsValid && Pieces.All(x => x.Position != destination))
                 {
                     Piece takable = Pieces.FirstOrDefault(x =>
                         x.Colour != piece.Colour && x.Position == (piece.Position.X + 1, piece.Position.Y + 1));
@@ -155,6 +153,52 @@ namespace Checkers.Api.Models
             return takablePieces;
         }
 
+        public List<Position> GetPossibleMoves(Piece piece)
+        {
+            List<(Position, Position)> forcedMoves = GetForcedMoves(piece.Colour);
+            
+            if (forcedMoves.Any()) return forcedMoves
+                .Where(x => x.Item1 == piece.Position)
+                .Select(x => x.Item2).ToList();
+
+            List<Position> possibleMoves = new();
+
+            // Use existing logic to find valid moves which take pieces
+            List<Piece> takablePieces = GetPiecesThatCanBeTaken(piece);
+            possibleMoves.AddRange(takablePieces.Select(x => Movement.ByTakingPiece(piece.Position, x).AsPositions().Item2));
+            
+            // Get positions for 1 square in the 4 diagonal directions
+            if (piece.CanMoveUp)
+            {
+                Position newPosition = (piece.Position.X - 1, piece.Position.Y - 1);
+                if (Pieces.All(x => x.Position != newPosition))
+                    possibleMoves.Add(newPosition);
+                
+                newPosition = (piece.Position.X + 1, piece.Position.Y - 1);
+                if (Pieces.All(x => x.Position != newPosition))
+                    possibleMoves.Add(newPosition);
+            }
+            if (piece.CanMoveDown)
+            {
+                Position newPosition = (piece.Position.X - 1, piece.Position.Y + 1);
+                if (Pieces.All(x => x.Position != newPosition))
+                    possibleMoves.Add(newPosition);
+                
+                newPosition = (piece.Position.X + 1, piece.Position.Y + 1);
+                if (Pieces.All(x => x.Position != newPosition))
+                    possibleMoves.Add(newPosition);
+            }
+
+            possibleMoves.RemoveAll(x => !x.IsValid);
+            return possibleMoves;
+        }
+
+        public void ApplyPossibleMoves()
+        {
+            foreach (Piece piece in Pieces)
+                piece.PossibleMoves = GetPossibleMoves(piece);
+        }
+        
         public void PromoteKings()
         {
             foreach (Piece pieceToPromote in Pieces.Where(x => x.Colour == PieceColour.White && x.Position.Y == 0 || x.Colour == PieceColour.Black && x.Position.Y == 7))
