@@ -45,16 +45,18 @@ export default class Board extends React.Component{
 		return tiles;
 	}
 
+	// this.props.player === 0
+	
 	getInitialTile(boardSize){
-		return this.props.player === 0 ? 0 : boardSize - 1;
+		return true ? 0 : boardSize - 1;
 	}
 
 	changeValue(){
-		return this.props.player === 0 ? 1 : -1;
+		return true ? 1 : -1;
 	}
 
 	compareValue(value, boardSize){
-		return this.props.player === 0 ? value < boardSize : value >= 0;
+		return true ? value < boardSize : value >= 0;
 	}
 
 	onTileClicked(tile){
@@ -83,11 +85,13 @@ export default class Board extends React.Component{
 		} else if(tile.props.piece) {
 
 			// No tile is selected and one with a piece has been clicked
-			// We should select this tile
+			// We should select this tile if it's a valid tile to select
 
-			this.setState({
-				selectedTile: tile.position
-			});
+			if(this.props.forceMovePositions.length == 0 || this.props.forceMovePositions.some(x => coordinatesAreEqual(tile.position, x))){
+				this.setState({
+					selectedTile: tile.position
+				});
+			}
 		}
 	}
 }

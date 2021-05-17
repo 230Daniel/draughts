@@ -11,7 +11,7 @@ export default class Tile extends React.Component{
 	render(){
 		return (
 			<div style={{
-				backgroundColor: this.props.colour === 0 ? "#a45f16": "#ffd27b",
+				backgroundColor: this.props.colour ? "#a45f16": "#ffd27b",
 				width: `${100 / this.props.boardSize}%`,
 				height: `${100 / this.props.boardSize}%`
 				}} className="tile"

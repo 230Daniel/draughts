@@ -15,7 +15,8 @@ export default class Game extends React.Component{
 			status: "Waiting for an opponent...",
 			board: null,
 			progress: 15,
-			player: null
+			player: null,
+			forceMovePositions: []
 		}
 		this.gameCode = this.props.match.params.gameCode;
 	}
@@ -47,6 +48,7 @@ export default class Game extends React.Component{
 				board={this.state.board}
 				player={this.state.player}
 				waitingForMove={this.state.turn === this.state.player}
+				forceMovePositions={this.state.forceMovePositions}
 				submitMove={(current, destination) => this.submitMove(current, destination)}/>
 			</div>
 		);
@@ -75,7 +77,16 @@ export default class Game extends React.Component{
 
 		connection.on("turnChanged", (turn) => {
 			this.setState({turn: turn});
+			this.setState({forceMovePositions: []});
 		});
+
+		connection.on("forceMovePositions", (positions) =>{
+			this.setState({forceMovePositions: positions});
+		});
+
+		connection.on("moveAgain", (position) =>{
+			this.setState({forceMovePositions: [position]});
+		})
 
 		await connection.start();
 

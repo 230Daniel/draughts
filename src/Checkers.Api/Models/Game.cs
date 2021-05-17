@@ -21,6 +21,7 @@ namespace Checkers.Api.Models
         IClientProxy PlayersConnection => _hub.Clients.Clients(Players.Select(x => x.ConnectionId));
         IClientProxy Player1Connection => _hub.Clients.Clients(Players[0].ConnectionId);
         IClientProxy Player2Connection => _hub.Clients.Clients(Players[1].ConnectionId);
+        IClientProxy NextPlayerConnection => _hub.Clients.Clients(NextPlayer.ConnectionId);
 
         public Game(string gameCode, IHubContext<GameHub> hub)
         {
@@ -57,13 +58,20 @@ namespace Checkers.Api.Models
             if(NextPlayer != player) return;
 
             MoveResult moveResult = Board.Move(before, after);
-            if (moveResult == MoveResult.Invalid) return;
-            await PlayersConnection.SendAsync("BoardUpdated", Board);
-
-            if (moveResult != MoveResult.Free)
+            if (moveResult.IsValid)
             {
-                _turnNumber++;
-                await PlayersConnection.SendAsync("TurnChanged", _turnNumber % 2);
+                await PlayersConnection.SendAsync("BoardUpdated", Board);
+                
+                if (moveResult.IsFinished)
+                {
+                    _turnNumber++;
+                    await PlayersConnection.SendAsync("TurnChanged", _turnNumber % 2);
+                    await NextPlayerConnection.SendAsync("ForceMovePositions", new int[][] { });
+                }
+                else
+                {
+                    await NextPlayerConnection.SendAsync("ForceMovePositions", new[] { moveResult.PositionToMoveAgain.AsTransportable() });
+                }
             }
         }
 

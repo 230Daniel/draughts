@@ -2,7 +2,7 @@
 
 namespace Checkers.Api.Models
 {
-    public struct Position : IEquatable<Position>
+    public class Position : IEquatable<Position>
     {
         public int X { get; set; }
         public int Y { get; set; }
@@ -13,12 +13,14 @@ namespace Checkers.Api.Models
             Y = y;
         }
 
+        public int[] AsTransportable() => this;
+
         public static implicit operator Position((int, int) value)
             => new(value.Item1, value.Item2);
         
         public static implicit operator (int, int)(Position value)
             => (value.X, value.Y);
-        
+
         public static implicit operator Position(int[] value)
             => new(value[0], value[1]);
         

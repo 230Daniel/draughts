@@ -51,7 +51,18 @@ namespace Checkers.Api.Models
             
             // Can not move piece onto another piece
             if (Pieces.Any(x => x.Position == after))
-                return MoveResult.Invalid;
+                return MoveResult.Invalid();
+
+            // Only kings can move in the opposite direction
+            
+            bool canMoveDown = true;
+            bool canMoveUp = true;
+                
+            if (piece.Colour == PieceColour.White) canMoveDown = piece.IsKing;
+            else canMoveUp = piece.IsKing;
+
+            if ((before.Y < after.Y) && !canMoveDown || (before.Y > after.Y && !canMoveUp)) 
+                return MoveResult.Invalid();
             
             // Piece could move diagonally 2 squares with an opponent piece underneath
 
@@ -72,16 +83,16 @@ namespace Checkers.Api.Models
                     taken = Pieces.FirstOrDefault(x => x.Position == (before.X + 1, before.Y - 1));
                 if (right && down)
                     taken = Pieces.FirstOrDefault(x => x.Position == (before.X + 1, before.Y + 1));
-                
+
                 if (taken is null || taken.Colour == piece.Colour)
-                    return MoveResult.Invalid;
-                
+                    return MoveResult.Invalid();
+
                 Pieces.Remove(taken);
                 piece.Position = after;
                 
-                return MoveResult.Free;
+                return GetPiecesThatCanBeTaken(piece).Any() ? MoveResult.MoveAgain(after) : MoveResult.FinishMove();
             }
-            
+
             // Otherwise pieces must move diagonally one square
             
             left = after.X == before.X - 1;
@@ -90,18 +101,67 @@ namespace Checkers.Api.Models
             down = after.Y == before.Y + 1;
 
             if (!(left && up || left && down || right && up || right && down))
-                return MoveResult.Invalid;
+                return MoveResult.Invalid();
             
             piece.Position = after;
-            return MoveResult.Valid;
+            return MoveResult.FinishMove();
+        }
+
+        public List<Piece> GetPiecesThatCanBeTaken(Piece piece)
+        {
+            bool canMoveDown = true;
+            bool canMoveUp = true;
+                
+            if (piece.Colour == PieceColour.White) canMoveDown = piece.IsKing;
+            else canMoveUp = piece.IsKing;
+
+            List<Piece> takablePieces = new();
+            
+            if (canMoveUp)
+            {
+                if (Pieces.All(x => x.Position != (piece.Position.X - 2, piece.Position.Y - 2)))
+                {
+                    Piece takable = Pieces.FirstOrDefault(x =>
+                        x.Colour != piece.Colour && x.Position == (piece.Position.X - 1, piece.Position.Y - 1));
+                    if (takable is not null) takablePieces.Add(takable);
+                }
+                if (Pieces.All(x => x.Position != (piece.Position.X + 2, piece.Position.Y - 2)))
+                {
+                    Piece takable = Pieces.FirstOrDefault(x =>
+                        x.Colour != piece.Colour && x.Position == (piece.Position.X + 1, piece.Position.Y - 1));
+                    if (takable is not null) takablePieces.Add(takable);
+                }
+            }
+
+            if (canMoveDown)
+            {
+                if (Pieces.All(x => x.Position != (piece.Position.X - 2, piece.Position.Y + 2)))
+                {
+                    Piece takable = Pieces.FirstOrDefault(x =>
+                        x.Colour != piece.Colour && x.Position == (piece.Position.X - 1, piece.Position.Y + 1));
+                    if (takable is not null) takablePieces.Add(takable);
+                }
+                if (Pieces.All(x => x.Position != (piece.Position.X + 2, piece.Position.Y + 2)))
+                {
+                    Piece takable = Pieces.FirstOrDefault(x =>
+                        x.Colour != piece.Colour && x.Position == (piece.Position.X + 1, piece.Position.Y + 1));
+                    if (takable is not null) takablePieces.Add(takable);
+                }
+            }
+
+            return takablePieces;
         }
     }
 
-    public enum MoveResult
+    public class MoveResult
     {
-        Invalid,
-        Valid,
-        Free
+        public bool IsValid { get; private set; }
+        public bool IsFinished { get; private set; }
+        public Position PositionToMoveAgain { get; private set; }
+
+        public static MoveResult FinishMove() => new() { IsValid = true, IsFinished = true };
+        public static MoveResult MoveAgain(Position position) => new() { IsValid = true, IsFinished = false, PositionToMoveAgain = position };
+        public static MoveResult Invalid() => new() { IsValid = false, IsFinished = false };
     }
 
     public class Piece
