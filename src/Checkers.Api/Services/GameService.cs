@@ -46,7 +46,7 @@ namespace Checkers.Api.Services
 
         string GetGameCode()
         {
-            Random random = new Random();
+            Random random = new();
             const string chars = "abcdefghijklmnopqrstuvwxyz";
             string[] forbidden = { "create" };
 

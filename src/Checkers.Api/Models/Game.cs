@@ -65,6 +65,13 @@ namespace Checkers.Api.Models
                 Board.PromoteKings();
                 Board.ApplyPossibleMoves();
                 await PlayersConnection.SendAsync("BoardUpdated", Board);
+
+                if (Board.GetIsWon(out PieceColour? winner))
+                {
+                    GameStatus = GameStatus.Ended;
+                    await PlayersConnection.SendAsync("GameEnded", winner);
+                    return;
+                }
                 
                 if (moveResult.IsFinished)
                 {

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Hosting;
 
 namespace Checkers.Api.Models
 {
@@ -193,6 +192,34 @@ namespace Checkers.Api.Models
             return possibleMoves;
         }
 
+        public bool GetIsWon(out PieceColour? winner)
+        {
+            // The game is won if all opposing pieces are eliminated
+            PieceColour firstPieceColour = Pieces.First().Colour;
+            if (Pieces.All(x => x.Colour == firstPieceColour))
+            {
+                winner = firstPieceColour;
+                return true;
+            }
+            
+            // The game is won if all opposing pieces are unable to move
+            List<Piece> whitePieces = Pieces.Where(x => x.Colour == PieceColour.White).ToList();
+            if (whitePieces.All(x => GetPossibleMoves(x).Count == 0))
+            {
+                winner = PieceColour.Black;
+                return true;
+            }
+            List<Piece> blackPieces = Pieces.Where(x => x.Colour == PieceColour.Black).ToList();
+            if (blackPieces.All(x => GetPossibleMoves(x).Count == 0))
+            {
+                winner = PieceColour.White;
+                return true;
+            }
+
+            winner = null;
+            return false;
+        }
+        
         public void ApplyPossibleMoves()
         {
             foreach (Piece piece in Pieces)

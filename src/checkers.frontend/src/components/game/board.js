@@ -38,7 +38,7 @@ export default class Board extends React.Component{
 				var piece = this.props.board.pieces.find(p => p.position.x === x && p.position.y === y);
 				
 				var possible = selectedPiece?.possibleMoves.some(m => coordinatesAreEqual([m.x, m.y], [x, y]));
-				
+
 				tiles.push((<Tile 
 					boardSize={boardSize} 
 					colour={(y+x) % 2 === 0} 
@@ -54,18 +54,16 @@ export default class Board extends React.Component{
 		return tiles;
 	}
 
-	// this.props.player === 0
-
 	getInitialTile(boardSize){
-		return true ? 0 : boardSize - 1;
+		return this.props.player === 0 ? 0 : boardSize - 1;
 	}
 
 	changeValue(){
-		return true ? 1 : -1;
+		return this.props.player === 0 ? 1 : -1;
 	}
 
 	compareValue(value, boardSize){
-		return true ? value < boardSize : value >= 0;
+		return this.props.player === 0 ? value < boardSize : value >= 0;
 	}
 
 	onTileClicked(tile){

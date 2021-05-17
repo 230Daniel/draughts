@@ -31,6 +31,7 @@ export default class Game extends React.Component{
 					
 					<h1>Game Page</h1>
 					<h2>Game Code: {this.gameCode}</h2>
+					<p>You are player {this.state.player + 1}</p>
 					<p>{this.state.status}</p>
 				</div>
 			);
@@ -81,6 +82,10 @@ export default class Game extends React.Component{
 
 		connection.on("setForcedMoves", (moves) =>{
 			this.setState({forcedMoves: moves});
+		});
+
+		connection.on("gameEnded", (winner) =>{
+			this.setState({playing: false, status: `The game has ended - Player ${winner + 1} won!`});
 		});
 
 		await connection.start();
