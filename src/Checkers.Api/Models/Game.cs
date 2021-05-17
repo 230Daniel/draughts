@@ -75,7 +75,6 @@ namespace Checkers.Api.Models
                 
                 if (moveResult.IsFinished)
                 {
-                    Console.WriteLine($"{DateTime.Now} turn change");
                     _turnNumber++;
                     await PlayersConnection.SendAsync("TurnChanged", _turnNumber % 2);
                 }
