@@ -77,7 +77,6 @@ export default class Game extends React.Component{
 
 		connection.on("turnChanged", (turn) => {
 			this.setState({turn: turn});
-			this.setState({forceMovePositions: []});
 		});
 
 		connection.on("setForcedMoves", (moves) =>{

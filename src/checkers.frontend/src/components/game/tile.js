@@ -24,7 +24,7 @@ export default class Tile extends React.Component{
 	renderPiece(){
 		if(this.props.piece){
 			return(
-				<Piece source={this.props.piece} selected={this.props.selected}/>
+				<Piece source={this.props.piece} selected={this.props.selected} forced={this.props.forced}/>
 			)
 		}
 		return null;

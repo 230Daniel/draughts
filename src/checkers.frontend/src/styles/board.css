@@ -63,3 +63,12 @@
 	left: -3px;
 	box-shadow: 6px 6px 2px rgb(56, 56, 56);
 }
+
+.piece-king{
+	outline: 5px inset black;
+}
+
+.piece-forced{
+	outline: 5px inset yellowgreen;
+}
+

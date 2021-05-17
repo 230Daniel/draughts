@@ -28,6 +28,7 @@ export default class Board extends React.Component{
 			for(var x = this.getInitialTile(boardSize); this.compareValue(x, boardSize); x += this.changeValue()){
 
 				var selected = coordinatesAreEqual(this.state.selectedTile, [x, y]);
+				var forced = this.props.forcedMoves.some(move => coordinatesAreEqual(move[0], [x, y]));
 
 				// If a piece exists with coordinates (x, y) we should pass it to the tile to display.
 				var piece = this.props.board.pieces.find(p => p.position.x === x && p.position.y === y);
@@ -37,6 +38,7 @@ export default class Board extends React.Component{
 					colour={(y+x) % 2 === 0} 
 					piece={piece} 
 					selected={selected}
+					forced={forced}
 					position={[x, y]}
 					onClicked={(tile) => this.onTileClicked(tile)}/>))
 			}
