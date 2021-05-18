@@ -26,11 +26,11 @@ export default class Board extends React.Component{
 		var selectedPiece = this.props.board.pieces.find(x => coordinatesAreEqual([x.position.x, x.position.y], this.state.selectedTile));
 
 		var i = 0;
-		for(var j = 0; j < boardSize; j++){
-			for(var k = 0; k < boardSize; k++){
+		for(let j = 0; j < boardSize; j++){
+			for(let k = 0; k < boardSize; k++){
 				i++;
-				var y = this.props.player === 0 ? j : boardSize - j - 1;
-				var x = this.props.player === 0 ? k : boardSize - k - 1;
+				let y = this.props.player === 0 ? j : boardSize - j - 1;
+				let x = this.props.player === 0 ? k : boardSize - k - 1;
 
 				var selected = coordinatesAreEqual(this.state.selectedTile, [x, y]);
 				var forced = this.props.forcedMoves.some(move => coordinatesAreEqual(move[0], [x, y]));

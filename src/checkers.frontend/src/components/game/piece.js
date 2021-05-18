@@ -11,7 +11,7 @@ export default class Piece extends React.Component{
 			${this.props.selected ? "piece-selected" : ""}`}>
 				<div className="piece-inside">
 					{this.props.source.isKing &&
-					<img src="/crown.svg"/>}
+					<img src="/crown.svg" alt="king"/>}
 				</div>
 			</div>
 		);
