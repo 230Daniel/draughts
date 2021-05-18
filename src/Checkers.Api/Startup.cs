@@ -43,7 +43,6 @@ namespace Checkers.Api
             {
                 app.UseDeveloperExceptionPage();
             }
-            app.UseHttpsRedirection();
             app.UseRouting();
             app.UseCors("frontend");
             app.UseAuthorization();
