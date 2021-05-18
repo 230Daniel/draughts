@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Checkers.Api.Extensions;
 using Checkers.Api.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
@@ -9,14 +10,17 @@ namespace Checkers.Api.Models
 {
     public class Game
     {
-        public string GameCode { get; set; }
-        public GameStatus GameStatus { get; private set; }
+        public string GameCode { get; }
+        public GameStatus GameStatus { get; set; }
         public List<User> Players { get; }
         public Board Board { get; }
+        
 
         int _turnNumber;
+        List<(Position, Position)> _moves { get; }
+        public int _currentMoveCount { get; set; }
+        
         User NextPlayer => Players[_turnNumber % Players.Count];
-
         IHubContext<GameHub> _hub;
         IClientProxy PlayersConnection => _hub.Clients.Clients(Players.Select(x => x.ConnectionId));
         IClientProxy Player1Connection => _hub.Clients.Clients(Players[0].ConnectionId);
@@ -27,9 +31,10 @@ namespace Checkers.Api.Models
         {
             GameCode = gameCode;
             GameStatus = GameStatus.Waiting;
-            Players = new List<User>();
-            Board = new Board();
+            Players = new();
+            Board = new();;
             _hub = hub;
+            _moves = new();
         }
 
         public async Task AddPlayerAsync(User player)
@@ -40,9 +45,11 @@ namespace Checkers.Api.Models
                 GameStatus = GameStatus.Playing;
                 await Player1Connection.SendAsync("GameStarted", 0);
                 await Player2Connection.SendAsync("GameStarted", 1);
-                await PlayersConnection.SendAsync("BoardUpdated", Board);
-                await PlayersConnection.SendAsync("TurnChanged", 0);
-                await PlayersConnection.SendAsync("setForcedMoves", ConvertMovesToTransportable(Board.GetForcedMoves(PieceColour.White)));
+                await PlayersConnection.SendAsync("GameUpdated", 
+                    _turnNumber % 2, 
+                    Board, 
+                    Board.GetForcedMoves(PieceColour.White).AsTransportable(),
+                    _moves.TakeLast(_currentMoveCount + 1));
             }
 
             player.OnDisconnected += OnPlayerDisconnected;
@@ -62,9 +69,11 @@ namespace Checkers.Api.Models
             MoveResult moveResult = Board.Move(before, after);
             if (moveResult.IsValid)
             {
+                _moves.Add((before, after));
+                _currentMoveCount++;
+                
                 Board.PromoteKings();
                 Board.ApplyPossibleMoves();
-                await PlayersConnection.SendAsync("BoardUpdated", Board);
 
                 if (Board.GetIsWon(out PieceColour? winner))
                 {
@@ -74,16 +83,20 @@ namespace Checkers.Api.Models
                 }
                 
                 if (moveResult.IsFinished)
-                {
                     _turnNumber++;
-                    await PlayersConnection.SendAsync("TurnChanged", _turnNumber % 2);
-                }
 
                 PieceColour nextPieceColour = moveResult.IsFinished ? pieceColour == PieceColour.White? PieceColour.Black : PieceColour.White : pieceColour;
                 List<(Position, Position)> newForcedMoves = Board.GetForcedMoves(nextPieceColour);
                 if (!moveResult.IsFinished) newForcedMoves.RemoveAll(x => x.Item1 != moveResult.PositionToMoveAgain);
                 
-                await PlayersConnection.SendAsync("setForcedMoves", ConvertMovesToTransportable(newForcedMoves));
+                await PlayersConnection.SendAsync("GameUpdated", 
+                    _turnNumber % 2, 
+                    Board, 
+                    newForcedMoves.AsTransportable(),
+                    _moves.TakeLast(_currentMoveCount).AsTransportable());
+
+                if (moveResult.IsFinished)
+                    _currentMoveCount = 0;
             }
         }
 
@@ -95,11 +108,6 @@ namespace Checkers.Api.Models
         public Game()
         {
             Players = new List<User>();
-        }
-
-        static int[][][] ConvertMovesToTransportable(IEnumerable<(Position, Position)> moves)
-        {
-            return moves.Select(x => new []{x.Item1.AsTransportable(), x.Item2.AsTransportable()}).ToArray();
         }
     }
 

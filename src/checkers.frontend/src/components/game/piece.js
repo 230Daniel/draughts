@@ -1,10 +1,9 @@
 import React from "react";
 
+import "../../styles/piece.css";
+
 export default class Piece extends React.Component{
 	render(){
-		if(this.props.selected){
-			console.log(this.props.source.possibleMoves.map(x => [x.x, x.y]));
-		}
 		return (
 			<div className={`piece 
 			${this.props.source.colour === 0 ? "piece-white" : "piece-black"} 

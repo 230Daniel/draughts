@@ -25,29 +25,37 @@ export default class Board extends React.Component{
 		var tiles = [];
 		var selectedPiece = this.props.board.pieces.find(x => coordinatesAreEqual([x.position.x, x.position.y], this.state.selectedTile));
 
-		console.log(this.props.board.pieces);
-		console.log(selectedPiece);
-
-		for(var y = this.getInitialTile(boardSize); this.compareValue(y, boardSize); y += this.changeValue()){
-			for(var x = this.getInitialTile(boardSize); this.compareValue(x, boardSize); x += this.changeValue()){
+		var i = 0;
+		for(var j = 0; j < boardSize; j++){
+			for(var k = 0; k < boardSize; k++){
+				i++;
+				var y = this.props.player === 0 ? j : boardSize - j - 1;
+				var x = this.props.player === 0 ? k : boardSize - k - 1;
 
 				var selected = coordinatesAreEqual(this.state.selectedTile, [x, y]);
 				var forced = this.props.forcedMoves.some(move => coordinatesAreEqual(move[0], [x, y]));
-
-				// If a piece exists with coordinates (x, y) we should pass it to the tile to display.
-				var piece = this.props.board.pieces.find(p => p.position.x === x && p.position.y === y);
-				
+				var previous = this.props.previousMove.some(move => move.some(coordinate => coordinatesAreEqual(coordinate, [x, y])));
 				var possible = selectedPiece?.possibleMoves.some(m => coordinatesAreEqual([m.x, m.y], [x, y]));
+				var possibleForced = selectedPiece?.possibleMoves.some(m => coordinatesAreEqual([m.x, m.y], [x, y])) && this.props.forcedMoves.some(m => coordinatesAreEqual(m[1], [x, y]));;
+				var piece = this.props.board.pieces.find(p => p.position.x === x && p.position.y === y);
+				var selectable = piece && 
+								 this.props.waitingForMove && 
+								 piece.colour === this.props.player && 
+								 piece.possibleMoves.length > 0;
 
 				tiles.push((<Tile 
 					boardSize={boardSize} 
 					colour={(y+x) % 2 === 0} 
 					piece={piece} 
 					selected={selected}
+					selectable={selectable}
 					forced={forced}
 					position={[x, y]}
 					possible={possible}
-					onClicked={(tile) => this.onTileClicked(tile)}/>))
+					possibleForced={possibleForced}
+					previous={previous}
+					onClicked={(tile) => this.onTileClicked(tile)}
+					key={i}/>))
 			}
 		}
 
@@ -94,12 +102,10 @@ export default class Board extends React.Component{
 			// No tile is selected and one with a piece has been clicked
 			// We should select this tile if it's a valid tile to select
 
-			if(tile.props.piece.colour === this.props.player){
-				if(this.props.forcedMoves.length == 0 || this.props.forcedMoves.some(x => coordinatesAreEqual(tile.position, x[0]))){
-					this.setState({
-						selectedTile: tile.position
-					});
-				}
+			if(tile.props.piece.colour === this.props.player && tile.props.piece.possibleMoves.length > 0){
+				this.setState({
+					selectedTile: tile.position
+				});
 			}
 		}
 	}

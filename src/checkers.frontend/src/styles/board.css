@@ -3,97 +3,10 @@
 	height: calc(100vh - 65px - 30px);
 	max-width: calc(100vw - 30px);
 	max-height: calc(100vw - 30px);
-	background-color: black;
 	border-radius: 2.5%;
 
 	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap;
 	overflow: hidden;
-}
-
-.tile{
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	transition: background-color 0.2s;
-}
-
-.tile-white{
-	background-color: #ffd27b;
-}
-
-.tile-black{
-	background-color: #a45f16;
-}
-
-.tile-possible{
-	background-color: #bfffad;
-}
-
-.tile-forced{
-	background-color: #bfadff;
-}
-
-.piece{
-	width: 75%;
-	height: 75%;
-	border-radius: 50%;
-	box-shadow: 3px 3px 2px rgb(56, 56, 56);
-	
-	display: flex;
-	align-items: center;
-	justify-content: center;
-
-	position: relative;
-	top: 0px;
-	left: 0px;
-	transition: all .1s;
-}
-
-.piece-white{
-	background-color: white;
-}
-
-.piece-black{
-	background-color: gray;
-}
-
-.piece-inside{
-	width: 70%;
-	height: 70%;
-	border-radius: 50%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.piece-white > .piece-inside{
-	background-color: rgb(224, 224, 224);
-	box-shadow: inset 2px 2px 1px rgb(169, 169, 169);
-}
-
-.piece-black > .piece-inside{
-	background-color: rgb(106, 106, 106);
-	box-shadow: inset 2px 2px 1px rgb(74, 74, 74);
-}
-
-.piece-selected{
-	top: -3px;
-	left: -3px;
-	box-shadow: 6px 6px 2px rgb(56, 56, 56);
-}
-
-.piece-inside > img{
-	width: 70%;
-	height: 70%;
-	object-fit: scale-down;
-}
-
-.piece-white > .piece-inside > img{
-	filter: invert(99%) sepia(85%) saturate(2%) hue-rotate(58deg) brightness(112%) contrast(100%);
-}
-
-.piece-black > .piece-inside > img{
-	filter: invert(52%) sepia(11%) saturate(0%) hue-rotate(272deg) brightness(94%) contrast(87%);
 }
