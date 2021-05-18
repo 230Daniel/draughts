@@ -33,8 +33,8 @@ export default class Board extends React.Component{
 				let x = this.props.player === 0 ? k : boardSize - k - 1;
 
 				var selected = coordinatesAreEqual(this.state.selectedTile, [x, y]);
-				var forced = this.props.forcedMoves.some(move => coordinatesAreEqual(move[0], [x, y]));
-				var previous = this.props.previousMove.some(move => move.some(coordinate => coordinatesAreEqual(coordinate, [x, y])));
+				var forced = this.props.forcedMoves.some(m => coordinatesAreEqual(m[0], [x, y]));
+				var previous = this.props.previousMove.some(m => m.some(c => coordinatesAreEqual(c, [x, y])));
 				var possible = selectedPiece?.possibleMoves.some(m => coordinatesAreEqual([m.x, m.y], [x, y]));
 				var possibleForced = selectedPiece?.possibleMoves.some(m => coordinatesAreEqual([m.x, m.y], [x, y])) && this.props.forcedMoves.some(m => coordinatesAreEqual(m[1], [x, y]));;
 				var piece = this.props.board.pieces.find(p => p.position.x === x && p.position.y === y);
@@ -60,18 +60,6 @@ export default class Board extends React.Component{
 		}
 
 		return tiles;
-	}
-
-	getInitialTile(boardSize){
-		return this.props.player === 0 ? 0 : boardSize - 1;
-	}
-
-	changeValue(){
-		return this.props.player === 0 ? 1 : -1;
-	}
-
-	compareValue(value, boardSize){
-		return this.props.player === 0 ? value < boardSize : value >= 0;
 	}
 
 	onTileClicked(tile){

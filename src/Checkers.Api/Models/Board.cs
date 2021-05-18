@@ -83,7 +83,10 @@ namespace Checkers.Api.Models
 
                 Pieces.Remove(taken);
                 piece.Position = after;
-
+                
+                // Note the piece has not yet been promoted (if it should be),
+                // ... so the turn will end if the piece is about to be promoted
+                // ... and the promoted piece could take a piece.
                 return GetPiecesThatCanBeTaken(piece).Any() ? MoveResult.MoveAgain(after) : MoveResult.FinishMove();
             }
 
@@ -228,8 +231,12 @@ namespace Checkers.Api.Models
         
         public void PromoteKings()
         {
-            foreach (Piece pieceToPromote in Pieces.Where(x => x.Colour == PieceColour.White && x.Position.Y == 0 || x.Colour == PieceColour.Black && x.Position.Y == 7))
+            foreach (Piece pieceToPromote in Pieces.Where(ShouldPromote))
                 pieceToPromote.IsKing = true;
         }
+
+        bool ShouldPromote(Piece piece)
+            => piece.Colour == PieceColour.White && piece.Position.Y == 0 || 
+               piece.Colour == PieceColour.Black && piece.Position.Y == 7;
     }
 }

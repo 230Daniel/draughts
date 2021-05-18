@@ -14,7 +14,6 @@ namespace Checkers.Api.Models
         public GameStatus GameStatus { get; set; }
         public List<User> Players { get; }
         public Board Board { get; }
-        
 
         int _turnNumber;
         List<(Position, Position)> _moves { get; }
@@ -32,7 +31,7 @@ namespace Checkers.Api.Models
             GameCode = gameCode;
             GameStatus = GameStatus.Waiting;
             Players = new();
-            Board = new();;
+            Board = new();
             _hub = hub;
             _moves = new();
         }
