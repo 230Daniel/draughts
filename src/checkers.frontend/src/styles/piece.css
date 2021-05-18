@@ -1,0 +1,62 @@
+.piece{
+	width: 75%;
+	height: 75%;
+	border-radius: 50%;
+	box-shadow: 3px 3px 2px #383838;
+	
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	position: relative;
+	top: 0px;
+	left: 0px;
+	/*transition: all .1s;*/
+}
+
+.piece-white{
+	background-color: white;
+}
+
+.piece-black{
+	background-color: gray;
+}
+
+.piece-inside{
+	width: 70%;
+	height: 70%;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.piece-white > .piece-inside{
+	background-color: #e0e0e0;
+	box-shadow: inset 2px 2px 1px #a9a9a9;
+}
+
+.piece-black > .piece-inside{
+	background-color: #6a6a6a;
+	box-shadow: inset 2px 2px 1px #4a4a4a;
+}
+
+.piece-selected{
+	top: -3px;
+	left: -3px;
+	box-shadow: 6px 6px 2px #383838;
+}
+
+.piece-inside > img{
+	width: 70%;
+	height: 70%;
+	object-fit: scale-down;
+}
+
+.piece-white > .piece-inside > img{
+	filter: invert(99%) sepia(85%) saturate(2%) hue-rotate(58deg) brightness(112%) contrast(100%);
+}
+
+.piece-black > .piece-inside > img{
+	filter: invert(52%) sepia(11%) saturate(0%) hue-rotate(272deg) brightness(94%) contrast(87%);
+}

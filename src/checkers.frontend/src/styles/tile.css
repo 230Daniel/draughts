@@ -1,0 +1,78 @@
+.tile{
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.tile-inside{
+	display: none;
+	border-radius: 40%;
+	width: 40%;
+	height: 40%;
+}
+
+/*
+	DEFAULT TILE COLOURS
+*/
+
+.tile-white{
+	background-color: #ffd27b;
+}
+
+.tile-black{
+	background-color: #986c39;
+}
+
+/*
+	DEFAULT TILE SPECIAL COLOURS
+*/
+
+.tile-selected{
+	background-color: #89b396 !important;
+}
+
+.tile-selectable:hover{
+	background-color: #9dd0ad;
+}
+
+.tile-possible:hover{
+	background-color: #9dd0ad;
+}
+
+.tile-possible:not(:hover) > .tile-inside{
+	display: block;
+	background-color: #89b396;
+}
+
+.tile-previous{
+	background-color: #89b396;
+}
+
+/*
+	FORCED TILE COLOURS
+*/
+
+.tile-forced{
+	background-color: #d5aee7;
+}
+
+/*
+	FORCED TILE SPECIAL COLOURS
+*/
+
+.tile-forced.tile-selected{
+	background-color: #a689b3 !important;
+}
+
+.tile-forced.tile-selectable:hover{
+	background-color: #b999c7;
+}
+
+.tile-possible-forced:hover{
+	background-color: #a689b3;
+}
+
+.tile-possible-forced:not(:hover) > .tile-inside{
+	display: block;
+	background-color: #a689b3;
+}
