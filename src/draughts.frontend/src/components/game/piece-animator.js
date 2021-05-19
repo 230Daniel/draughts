@@ -52,16 +52,13 @@ export default class PieceAnimator extends React.Component{
 	}
 
 	animateMove(piece, before, after){
-		console.log("Animating move %O --> %O with piece %O", before, after, piece);
 		this.setState({piece: piece, startingPosition: this.reorientateCoordinate(before), endingPosition: this.reorientateCoordinate(after)});
 		this.setState({visible: true, moving: false, top: this.state.startingPosition[1], left: this.state.startingPosition[0]});
 	}
 
 	reorientateCoordinate(coordinate){
 		if(this.props.player === 1){
-			for(let i = 0; i < coordinate.length; i++){
-				coordinate[i] = this.props.boardSize - coordinate[i] - 1;
-			}
+			return [this.props.boardSize - coordinate[0] - 1, this.props.boardSize - coordinate[1] - 1];
 		}
 		return coordinate;
 	}

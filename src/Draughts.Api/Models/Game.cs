@@ -74,13 +74,6 @@ namespace Draughts.Api.Models
                 Board.PromoteKings();
                 Board.ApplyPossibleMoves();
 
-                if (Board.GetIsWon(out PieceColour? winner))
-                {
-                    GameStatus = GameStatus.Ended;
-                    await PlayersConnection.SendAsync("GameEnded", winner);
-                    return;
-                }
-                
                 if (moveResult.IsFinished)
                     _turnNumber++;
 
@@ -96,6 +89,13 @@ namespace Draughts.Api.Models
 
                 if (moveResult.IsFinished)
                     _currentMoveCount = 0;
+                
+                if (Board.GetIsWon(out PieceColour? winner))
+                {
+                    GameStatus = GameStatus.Ended;
+                    await PlayersConnection.SendAsync("GameEnded", winner);
+                    return;
+                }
             }
         }
 

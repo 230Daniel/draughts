@@ -41,7 +41,7 @@ export default class Board extends React.Component{
 
 				var selected = coordinatesAreEqual(this.state.selectedTile, [x, y]);
 				var forced = this.props.forcedMoves.some(m => coordinatesAreEqual(m[0], [x, y]));
-				var previous = this.props.previousMove.some(m => m.some(c => coordinatesAreEqual(c, [k, j])));
+				var previous = this.props.previousMove.some(m => m.some(c => coordinatesAreEqual(c, [x, y])));
 				var possible = selectedPiece?.possibleMoves.some(m => coordinatesAreEqual([m.x, m.y], [x, y]));
 				var possibleForced = selectedPiece?.possibleMoves.some(m => coordinatesAreEqual([m.x, m.y], [x, y])) && this.props.forcedMoves.some(m => coordinatesAreEqual(m[1], [x, y]));;
 				var piece = this.props.board.pieces.find(p => p.position.x === x && p.position.y === y);
@@ -111,15 +111,6 @@ export default class Board extends React.Component{
 		this.props.board.pieces.splice(index, 1);
 		this.setState({});
 		this.pieceAnimator.current.animateMove(piece, before, after);
-	}
-
-	reorientateCoordinate(coordinate){
-		if(this.props.player === 1){
-			for(let i = 0; i < coordinate.length; i++){
-				coordinate[i] = BOARD_SIZE - coordinate[i] - 1;
-			}
-		}
-		return coordinate;
 	}
 }
 

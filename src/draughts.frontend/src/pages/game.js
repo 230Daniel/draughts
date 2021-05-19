@@ -79,7 +79,7 @@ export default class Game extends React.Component{
 			console.log("Received dispatch GAME_UPDATED\nturn: %i\nboard: %O\nforcedMoves: %O\npreviousMove: %O", turn, board, forcedMoves, previousMove);
 
 			if(this.board.current && previousMove.length > 0){
-				this.board.current.animateMove(previousMove.slice(-1)[0][0], previousMove.slice(-1)[0][1]);
+				this.board.current.animateMove({ ...previousMove.slice(-1)[0][0]}, {...previousMove.slice(-1)[0][1]});
 				setTimeout(() =>{
 					this.setState({turn: turn, board: board, forcedMoves: forcedMoves, previousMove: previousMove});
 				}, 500);
@@ -96,7 +96,10 @@ export default class Game extends React.Component{
 
 		connection.on("gameEnded", (winner) =>{
 			console.log("Received dispatch GAME_ENDED\nwinner: %i", winner);
-			this.setState({playing: false, status: `The game has ended - Player ${winner + 1} won!`});
+
+			setTimeout(() =>{
+				this.setState({playing: false, status: `The game has ended - Player ${winner + 1} won!`});
+			}, 1000);
 		});
 
 		await connection.start();
