@@ -5,6 +5,7 @@
 	max-height: calc(100vw - 30px);
 	border-radius: 2.5%;
 
+	position: relative;
 	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap;

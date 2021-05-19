@@ -22,6 +22,7 @@ export default class Game extends React.Component{
 			previousMove: null
 		}
 		this.gameCode = this.props.match.params.gameCode;
+		this.board = React.createRef();
 	}
 
 	render(){
@@ -54,7 +55,8 @@ export default class Game extends React.Component{
 				waitingForMove={this.state.turn === this.state.player}
 				forcedMoves={this.state.forcedMoves}
 				previousMove={this.state.previousMove}
-				submitMove={(current, destination) => this.submitMove(current, destination)}/>
+				submitMove={(current, destination) => this.submitMove(current, destination)}
+				ref={this.board}/>
 			</div>
 		);
 	}
@@ -69,23 +71,32 @@ export default class Game extends React.Component{
 		.build();
 
 		connection.on("gameStarted", (player) =>{
-			this.setState({playing: true, player: player})
 			console.log("Received dispatch GAME_STARTED\nplayer: %i", player);
+			this.setState({playing: true, player: player})
 		});
 
 		connection.on("gameUpdated", (turn, board, forcedMoves, previousMove) => {
-			this.setState({turn: turn, board: board, forcedMoves: forcedMoves, previousMove: previousMove});
 			console.log("Received dispatch GAME_UPDATED\nturn: %i\nboard: %O\nforcedMoves: %O\npreviousMove: %O", turn, board, forcedMoves, previousMove);
+
+			if(this.board.current && previousMove.length > 0){
+				this.board.current.animateMove(previousMove.slice(-1)[0][0], previousMove.slice(-1)[0][1]);
+				setTimeout(() =>{
+					this.setState({turn: turn, board: board, forcedMoves: forcedMoves, previousMove: previousMove});
+				}, 500);
+			} else{
+				this.setState({turn: turn, board: board, forcedMoves: forcedMoves, previousMove: previousMove});
+			}
+			
 		});
 
 		connection.on("gameCanceled", () =>{
-			this.setState({playing: false, status: "The game has been canceled."})
 			console.log("Received dispatch GAME_CANCELED");
+			this.setState({playing: false, status: "The game has been canceled."})
 		});
 
 		connection.on("gameEnded", (winner) =>{
-			this.setState({playing: false, status: `The game has ended - Player ${winner + 1} won!`});
 			console.log("Received dispatch GAME_ENDED\nwinner: %i", winner);
+			this.setState({playing: false, status: `The game has ended - Player ${winner + 1} won!`});
 		});
 
 		await connection.start();
