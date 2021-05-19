@@ -106,7 +106,7 @@ export default class Board extends React.Component{
 	}
 
 	animateMove(before, after){
-		var piece = this.props.board.pieces.find(p => p.position.x == before[0] && p.position.y == before[1]);
+		var piece = this.props.board.pieces.find(p => p.position.x === before[0] && p.position.y === before[1]);
 		var index = this.props.board.pieces.indexOf(piece);
 		this.props.board.pieces.splice(index, 1);
 		this.setState({});

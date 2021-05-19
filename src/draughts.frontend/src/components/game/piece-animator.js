@@ -19,6 +19,7 @@ export default class PieceAnimator extends React.Component{
 			top: 0,
 			left: 0
 		}
+		this.currentlyUpdating = false;
 	}
 
 	render(){
@@ -29,9 +30,7 @@ export default class PieceAnimator extends React.Component{
 					width: `${100 / this.props.boardSize}%`,
 					height: `${100 / this.props.boardSize}%`,
 					top: `${100 / this.props.boardSize * this.state.top}%`,
-					left: `${100 / this.props.boardSize * this.state.left}%`,
-					transition: this.state.moving ? "top 0.5s, left 0.5s" : ""
-					}} >
+					left: `${100 / this.props.boardSize * this.state.left}%`}}>
 					<Piece source={this.state.piece}/>
 				</div>
 			);
@@ -39,21 +38,34 @@ export default class PieceAnimator extends React.Component{
 		return null;
 	}
 
-	componentDidUpdate(){
+	componentDidUpdate(prevProps, prevState){
+		if(this.currentlyUpdating) return;
+		this.currentlyUpdating = true;
+		console.log("update\n%O\n%O", prevState, this.state);
 		setTimeout(() => {
-			if(this.state.visible && !this.state.moving){
-				this.setState({visible: true, moving: true, top: this.state.endingPosition[1], left: this.state.endingPosition[0]});
-			} else if(this.state.moving){
+			// Component has become visible
+			if(!prevState.visible && this.state.visible){
+				console.log("become visible");
+				this.setState({moving: true, top: this.state.endingPosition[1], left: this.state.endingPosition[0]});
+			}
+
+			// Component has started moving
+			if(!prevState.moving && this.state.moving){
+				console.log("started moving");
 				setTimeout(() => {
 					this.setState({visible: false, moving: false});
 				}, 500);
 			}
+			this.currentlyUpdating = false;
 		}, 50);
 	}
 
 	animateMove(piece, before, after){
-		this.setState({piece: piece, startingPosition: this.reorientateCoordinate(before), endingPosition: this.reorientateCoordinate(after)});
-		this.setState({visible: true, moving: false, top: this.state.startingPosition[1], left: this.state.startingPosition[0]});
+
+		var startingPosition = this.reorientateCoordinate(before);
+		var endingPosition = this.reorientateCoordinate(after)
+
+		this.setState({visible: true, moving: false, piece: piece, startingPosition: startingPosition, endingPosition: endingPosition, top: startingPosition[1], left: startingPosition[0]});
 	}
 
 	reorientateCoordinate(coordinate){

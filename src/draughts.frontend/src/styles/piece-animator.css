@@ -1,3 +1,4 @@
 .piece-animator{
 	position: absolute;
+	transition: top 0.5s, left 0.5s;
 }
