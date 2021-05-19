@@ -3,6 +3,7 @@ import { Redirect } from "react-router-dom";
 import { HubConnectionBuilder } from "@aspnet/signalr";
 
 import Board from "../components/game/board.js";
+import Loading from "../components/loading";
 
 import "../styles/game.css";
 
@@ -11,6 +12,7 @@ export default class Game extends React.Component{
 		super(props);
 		this.state = {
 			connection: null,
+			connectionError: false,
 			playing: false,
 			status: "Waiting for an opponent...",
 
@@ -27,12 +29,30 @@ export default class Game extends React.Component{
 
 	render(){
 		if (this.state.redirect) {
-			return <Redirect to={this.state.redirect} />
+			return (<Redirect to={this.state.redirect} />);
+		}
+		if(this.state.connectionError){
+			return (
+					<div>
+						<h1>Game Page</h1>
+						<h2>Game Code: {this.gameCode}</h2>
+						<span class="message" style={{marginTop: "60px"}}>WebSocket failed to connect</span>
+					</div>
+				);
 		}
 		if (!this.state.playing){
+			if(!this.state.connection){
+				return(
+					<div>
+						<h1>Game Page</h1>
+						<h2>Game Code: {this.gameCode}</h2>
+						<span className="message" style={{marginTop: "60px"}}>Connecting...</span>
+						<Loading/>
+					</div>
+				)
+			}
 			return (
 				<div>
-					
 					<h1>Game Page</h1>
 					<h2>Game Code: {this.gameCode}</h2>
 					<p>You are player {this.state.player + 1}</p>
@@ -102,20 +122,28 @@ export default class Game extends React.Component{
 			}, 1000);
 		});
 
-		await connection.start();
-
-		connection.invoke("joinGame", this.gameCode)
-		.then((success) =>{
+		connection.start()
+		.then(() =>{
+			connection.invoke("joinGame", this.gameCode)
+			.then((success) =>{
 			if(!success){
 				this.setState({redirect: "/"});
 				return;
 			}
-		});
+			});
+			this.setState({connection: connection});
+		})
+		.catch(() =>{
+			this.setState({connectionError: true});
+			return;
+		})
 
-		this.setState({connection: connection});
+		
 	}
 
 	componentWillUnmount(){
-		this.state.connection.stop();
+		try{
+			this.state.connection.stop();
+		} catch { }
 	}
 }

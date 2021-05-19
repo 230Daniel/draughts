@@ -138,17 +138,21 @@ h2{
 	box-shadow: none !important;
 }
 
-.commands-section{
-	border-bottom-style: hidden;
+.max-width{
 	width: 100%;
-    margin-bottom: 20px;
-	font-size: 16px;
-	margin-left: 20px;
-	margin-right: 20px;
 }
 
-.commands-section > tbody > tr > td{
-	padding: 8px;
+.center{
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+}
+
+.message{
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	font-size: 24px;
 }
 
 /* Scrollbars */

@@ -24,4 +24,8 @@
     <Content Remove="Logs\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="AspNetCoreRateLimit" Version="3.2.2" />
+  </ItemGroup>
+
 </Project>
