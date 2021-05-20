@@ -11,13 +11,13 @@ export default class Game extends React.Component{
 	constructor(props){
 		super(props);
 		this.state = {
-			connection: null,
-			connectionError: false,
+			message: null,
 			playing: false,
-			status: "Waiting for an opponent...",
-
+			loading: true,
+			exit: false,
+			waitingForOpponent: false,
+			
 			player: null,
-
 			turn: null,
 			board: null,
 			forcedMoves: null, 
@@ -28,44 +28,19 @@ export default class Game extends React.Component{
 	}
 
 	render(){
-		if (this.state.redirect) {
-			return (<Redirect to={this.state.redirect} />);
-		}
-		if(this.state.connectionError){
+		if(this.state.redirect){
 			return (
-					<div>
-						<h1>Game Page</h1>
-						<h2>Game Code: {this.gameCode}</h2>
-						<span class="message" style={{marginTop: "60px"}}>WebSocket failed to connect</span>
-					</div>
-				);
+				<Redirect to={this.state.redirect}/>
+			)
 		}
-		if (!this.state.playing){
-			if(!this.state.connection){
-				return(
-					<div>
-						<h1>Game Page</h1>
-						<h2>Game Code: {this.gameCode}</h2>
-						<span className="message" style={{marginTop: "60px"}}>Connecting...</span>
-						<Loading/>
+		if(!this.state.playing || this.state.loading || this.state.error || this.state.waitingForOpponent || this.state.exit){
+			return(
+				<div className="menu-box-centerer">
+					<div className="menu-box">
+						{this.renderMenuBoxContent()}
 					</div>
-				)
-			}
-			return (
-				<div>
-					<h1>Game Page</h1>
-					<h2>Game Code: {this.gameCode}</h2>
-					<p>You are player {this.state.player + 1}</p>
-					<p>{this.state.status}</p>
 				</div>
 			);
-		}
-		if(!this.state.board){
-			return (
-				<div>
-					<h1>Loading...</h1>
-				</div>
-			)
 		}
 		return(
 			<div className="game-container">
@@ -81,21 +56,89 @@ export default class Game extends React.Component{
 		);
 	}
 
+	renderMenuBoxContent(){
+		if(this.state.error){
+			return (
+				<>
+					<span className="menu-box-title">Error</span>
+					<span className="menu-box-message">{this.state.errorMessage}</span>
+					<div className="center">
+						<button className="menu-box-button" onClick={() => {
+							this.setState({redirect: "/play"})
+						}}>Back</button>
+					</div>
+				</>
+			);
+		}
+		if(this.state.exit){
+			return (
+				<>
+					<span className="menu-box-title">{this.state.message}</span>
+					<div className="center">
+						<button className="menu-box-button" onClick={() => {
+							this.setState({redirect: "/play"})
+						}}>Back</button>
+					</div>
+				</>
+			);
+		}
+		if(this.state.loading || (!this.state.waitingForOpponent && !this.state.playing)){
+			return (
+				<>
+					<span className="menu-box-title">{this.state.message}</span>
+					<Loading/>
+				</>
+			);
+		}
+		if(this.state.waitingForOpponent){
+			return(
+				<>
+					<span className="menu-box-title">Waiting for opponent...</span>
+					<span className="menu-box-message">Invite a friend using this game code</span>
+					<div className="menu-box-section">
+						<div className="menu-box-input menu-box-input-simple">
+							<input value={this.gameCode} style={{textAlign: "center", textTransform: "uppercase"}} readOnly/>
+						</div>
+					</div>
+					<div className="center">
+						<button className="menu-box-button" onClick={() => {
+							this.setState({redirect: "/play"})
+						}}>Back</button>
+					</div>
+					
+				</>
+			);
+		}
+	}
+
 	submitMove(current, destination){
-		this.state.connection.invoke("submitMove", current, destination);
+		window.connection.invoke("submitMove", current, destination);
 	}
 
 	async componentDidMount(){
-		var connection = new HubConnectionBuilder()
+
+		window.connection = new HubConnectionBuilder()
 		.withUrl(`${window.BASE_URL}/gamehub`)
 		.build();
 
-		connection.on("gameStarted", (player) =>{
+		this.setState({message: "Connecting..."});
+
+		try{
+			await window.connection.start();
+		} catch (e) {
+			this.setState({error: true, errorMessage: "Failed to connect to the server"});
+			console.log("error: %O", e);
+			return;
+		}
+
+		this.setState({message: "Getting ready..."});
+
+		window.connection.on("gameStarted", (player) =>{
 			console.log("Received dispatch GAME_STARTED\nplayer: %i", player);
-			this.setState({playing: true, player: player})
+			this.setState({waitingForOpponent: false, player: player, message: "Loading..."})
 		});
 
-		connection.on("gameUpdated", (turn, board, forcedMoves, previousMove) => {
+		window.connection.on("gameUpdated", (turn, board, forcedMoves, previousMove) => {
 			console.log("Received dispatch GAME_UPDATED\nturn: %i\nboard: %O\nforcedMoves: %O\npreviousMove: %O", turn, board, forcedMoves, previousMove);
 
 			if(this.board.current && previousMove.length > 0){
@@ -104,46 +147,47 @@ export default class Game extends React.Component{
 					this.setState({turn: turn, board: board, forcedMoves: forcedMoves, previousMove: previousMove});
 				}, 500);
 			} else{
-				this.setState({turn: turn, board: board, forcedMoves: forcedMoves, previousMove: previousMove});
+				this.setState({playing: true, loading: false, turn: turn, board: board, forcedMoves: forcedMoves, previousMove: previousMove});
 			}
 			
 		});
 
-		connection.on("gameCanceled", () =>{
+		window.connection.on("gameCanceled", () =>{
 			console.log("Received dispatch GAME_CANCELED");
-			this.setState({playing: false, status: "The game has been canceled."})
+			this.setState({error: true, errorMessage: "Your opponent has disconnected"});
 		});
 
-		connection.on("gameEnded", (winner) =>{
+		window.connection.onclose(() =>{
+			this.setState({error: true, errorMessage: "Lost connection to the server"});
+		});
+
+		window.connection.on("gameEnded", (winner) =>{
 			console.log("Received dispatch GAME_ENDED\nwinner: %i", winner);
 
 			setTimeout(() =>{
-				this.setState({playing: false, status: `The game has ended - Player ${winner + 1} won!`});
+				this.setState({exit: true, message: this.state.player === winner ? "Victory!" : "Defeat!"});
 			}, 1000);
 		});
 
-		connection.start()
-		.then(() =>{
-			connection.invoke("joinGame", this.gameCode)
-			.then((success) =>{
-			if(!success){
-				this.setState({redirect: "/"});
+		this.setState({message: "Joining game..."});
+
+		try{
+			var game = await window.connection.invoke("joinGame", this.gameCode);
+			if(!game){
+				this.setState({error: true, errorMessage: "Failed to join the game"});
 				return;
 			}
-			});
-			this.setState({connection: connection});
-		})
-		.catch(() =>{
-			this.setState({connectionError: true});
+			if(game.players.length === 1){
+				this.setState({loading: false, waitingForOpponent: true});
+			}
+		} catch (e) {
+			this.setState({error: true, errorMessage: "Failed to join the game"});
+			console.log("error: %O", e);
 			return;
-		})
-
-		
+		}
 	}
 
 	componentWillUnmount(){
-		try{
-			this.state.connection.stop();
-		} catch { }
+		window.connection?.stop();
 	}
 }

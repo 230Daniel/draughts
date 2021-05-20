@@ -148,6 +148,16 @@ h2{
 	flex-direction: column;
 }
 
+.inline{
+	display: flex;
+	flex-direction: row;
+}
+
+.center.inline{
+	align-items: initial;
+	justify-content: center;
+}
+
 .message{
 	display: flex;
 	align-items: center;

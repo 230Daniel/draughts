@@ -41,17 +41,14 @@ export default class PieceAnimator extends React.Component{
 	componentDidUpdate(prevProps, prevState){
 		if(this.currentlyUpdating) return;
 		this.currentlyUpdating = true;
-		console.log("update\n%O\n%O", prevState, this.state);
 		setTimeout(() => {
 			// Component has become visible
 			if(!prevState.visible && this.state.visible){
-				console.log("become visible");
 				this.setState({moving: true, top: this.state.endingPosition[1], left: this.state.endingPosition[0]});
 			}
 
 			// Component has started moving
 			if(!prevState.moving && this.state.moving){
-				console.log("started moving");
 				setTimeout(() => {
 					this.setState({visible: false, moving: false});
 				}, 500);

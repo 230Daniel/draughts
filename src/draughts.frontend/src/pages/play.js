@@ -1,28 +1,14 @@
 import React from "react";
-import { Redirect } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
+import Button from "../components/button";
 
 export default class Play extends React.Component{
-	constructor(props){
-		super(props);
-		this.state = {
-			gameCode: "",
-			invalidCode: false
-		}
-	}
-
 	render(){
-		if (this.state.redirect) {
-			return <Redirect to={this.state.redirect} />
-		}
 		return (
-			<div>
-				<h1>Home Page</h1>
-				<button onClick={() => this.createGame()}>New Game</button><br/>
-				<input placeholder="Game Code" value={this.state.gameCode} onChange={(obj) => this.setState({gameCode: obj.target.value})}></input>
-				<button onClick={() => this.joinGame(this.state.gameCode)}>Join Game</button><br/>
-				{this.state.invalidCode &&
-					<span style={{color: "red"}}>Invalid game code</span>
-				}
+			<div className="center">
+				<h1 style={{marginBottom: "30px"}}>Play Draughts</h1>
+				<Button to="/create-game" width="200px">Create a Game</Button>
+				<Button to="/join-game" width="200px">Join a Game</Button>
 			</div>
 		);
 	}

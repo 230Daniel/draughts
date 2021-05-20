@@ -17,15 +17,15 @@ namespace Draughts.Api.Hubs
         }
 
         [HubMethodName("JoinGame")]
-        public async Task<bool> JoinGameAsync(string gameCode)
+        public async Task<Game> JoinGameAsync(string gameCode)
         {
             User user = _userService.GetOrCreateUser(Context);
             Game game = _gameService.GetGame(gameCode);
             if(game is null || game.GameStatus != GameStatus.Waiting) 
-                return false;
+                return null;
 
             await game.AddPlayerAsync(user);
-            return true;
+            return game;
         }
 
         [HubMethodName("CancelGame")]
