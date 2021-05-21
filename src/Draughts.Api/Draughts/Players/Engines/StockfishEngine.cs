@@ -20,11 +20,12 @@ namespace Draughts.Api.Draughts.Players.Engines
         public (Position, Position) FindBestMove(Board board, PieceColour pieceColour)
         {
             _desiredPieceColour = pieceColour;
-            int score = Max(board, pieceColour, null, _maxDepth, out var bestMove);
+            int score = Max(board, pieceColour, null, _maxDepth, int.MinValue, int.MaxValue, out var bestMove);
+            Console.WriteLine($"Score: {score}");
             return bestMove;
         }
 
-        int Max(Board board, PieceColour colourToPlay, MoveResult previousMoveResult, int depth, out (Position, Position) bestMove)
+        int Max(Board board, PieceColour colourToPlay, MoveResult previousMoveResult, int depth, int alpha, int beta, out (Position, Position) bestMove)
         {
             int bestScore = int.MinValue;
             bestMove = (null, null);
@@ -41,16 +42,17 @@ namespace Draughts.Api.Draughts.Players.Engines
             
             List<(Position, Position)> moves = GetMoves(board, colourToPlay, previousMoveResult);
             List<(Position, Position)> bestMoves = new();
+
             foreach ((Position, Position) move in moves)
             {
-                Board newBoard = board.Clone();
+                Board newBoard = board.Copy();
                 MoveResult moveResult = newBoard.Move(move.Item1, move.Item2);
                 newBoard.PromoteKings();
                 newBoard.ApplyPossibleMoves();
 
                 while (!moveResult.IsFinished)
                 {
-                    Max(newBoard, colourToPlay, moveResult, depth, out var extraMove);
+                    Max(newBoard, colourToPlay, moveResult, depth, alpha, beta, out var extraMove);
                     if (extraMove.Item1 is null) break;
                     moveResult = newBoard.Move(extraMove.Item1, extraMove.Item2);
                     newBoard.PromoteKings();
@@ -59,7 +61,8 @@ namespace Draughts.Api.Draughts.Players.Engines
                 
                 PieceColour nextColourToPlay = colourToPlay.Opposite();
                 
-                int score = Min(newBoard, nextColourToPlay, null, depth - 1, out _);
+                int score = Min(newBoard, nextColourToPlay, null, depth - 1, alpha, beta, out _);
+                
                 if (score > bestScore)
                 {
                     bestScore = score;
@@ -69,15 +72,19 @@ namespace Draughts.Api.Draughts.Players.Engines
                 else if(score == bestScore)
                     bestMoves.Add(move);
                 
-                if(depth == _maxDepth) Console.WriteLine($"Score of {((int, int)) move.Item1} -> {((int, int)) move.Item2}: {score}");
+                alpha = Math.Max(alpha, score);
+                if (alpha >= beta)
+                {
+                    break;
+                }
             }
 
             if (bestMoves.Count > 0) bestMove = bestMoves[_random.Next(0, bestMoves.Count)];
-            else bestMove = moves[0];
+            else if (moves.Count != 0) bestMove = moves[_random.Next(0, moves.Count)];
             return bestScore;
         }
 
-        int Min(Board board, PieceColour colourToPlay, MoveResult previousMoveResult, int depth, out (Position, Position) bestMove)
+        int Min(Board board, PieceColour colourToPlay, MoveResult previousMoveResult, int depth, int alpha, int beta, out (Position, Position) bestMove)
         {
             int bestScore = int.MaxValue;
             bestMove = (null, null);
@@ -94,16 +101,17 @@ namespace Draughts.Api.Draughts.Players.Engines
             
             List<(Position, Position)> moves = GetMoves(board, colourToPlay, previousMoveResult);
             List<(Position, Position)> bestMoves = new();
+            
             foreach ((Position, Position) move in moves)
             {
-                Board newBoard = board.Clone();
+                Board newBoard = board.Copy();
                 MoveResult moveResult = newBoard.Move(move.Item1, move.Item2);
                 newBoard.PromoteKings();
                 newBoard.ApplyPossibleMoves();
                 
                 while (!moveResult.IsFinished)
                 {
-                    Max(newBoard, colourToPlay, moveResult, depth, out var extraMove);
+                    Max(newBoard, colourToPlay, moveResult, depth, alpha, beta, out var extraMove);
                     if (extraMove.Item1 is null) break;
                     moveResult = newBoard.Move(extraMove.Item1, extraMove.Item2);
                     newBoard.PromoteKings();
@@ -112,7 +120,8 @@ namespace Draughts.Api.Draughts.Players.Engines
                 
                 PieceColour nextColourToPlay = colourToPlay.Opposite();
                 
-                int score = Max(newBoard, nextColourToPlay, null, depth - 1, out _);
+                int score = Max(newBoard, nextColourToPlay, null, depth - 1, alpha, beta, out _);
+
                 if (score < bestScore)
                 {
                     bestScore = score;
@@ -121,10 +130,16 @@ namespace Draughts.Api.Draughts.Players.Engines
                 }
                 else if(score == bestScore)
                     bestMoves.Add(move);
+                
+                beta = Math.Min(beta, score);
+                if (beta <= alpha)
+                {
+                    break;
+                }
             }
 
             if (bestMoves.Count > 0) bestMove = bestMoves[_random.Next(0, bestMoves.Count)];
-            else bestMove = moves[0];
+            else if (moves.Count != 0) bestMove = moves[_random.Next(0, moves.Count)];
             return bestScore;
         }
 

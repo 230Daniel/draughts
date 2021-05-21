@@ -19,7 +19,7 @@ namespace Draughts.Api.Draughts.Players
 
         public StockfishPlayer()
         {
-            _engine = new(3);
+            _engine = new(5);
         }
         
         public Task SendGameStartedAsync(PieceColour pieceColour)
@@ -32,10 +32,9 @@ namespace Draughts.Api.Draughts.Players
                 try
                 {
                     if (pieceColour != PieceColour) return;
-                    Task delay = Task.Delay(1000);
+                    Task delay = Task.Delay(750);
                     
                     (Position, Position) bestMove = _engine.FindBestMove(board, pieceColour);
-                    Console.WriteLine($"Making move {((int, int)) bestMove.Item1} -> {((int, int)) bestMove.Item2}");
 
                     await delay;
                     await OnMoveSubmitted.Invoke(this, bestMove.Item1, bestMove.Item2);
