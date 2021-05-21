@@ -52,6 +52,7 @@ namespace Draughts.Api.Draughts
                 _player2 = Options.Algorithm switch
                 {
                     Algorithm.RandomMoves => new RandomPlayer(),
+                    Algorithm.Stockfish => new StockfishPlayer(),
                     _ => _player2
                 };
                 

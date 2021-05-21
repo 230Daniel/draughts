@@ -16,7 +16,7 @@ export default class CreateGame extends React.Component{
 			errorMessage: null,
 
 			opponent: 0,
-			algorithm: 0,
+			algorithm: 1,
 			variant: 0,
 			side: 0
 		}
@@ -73,6 +73,7 @@ export default class CreateGame extends React.Component{
 							<span>Algorithm</span>
 							<select defaultValue={this.state.algorithm} onChange={(e) => { this.setState({algorithm: parseInt(e.target.value)}); }}>
 								<option value="0">Random Moves</option>
+								<option value="1">Stockfish</option>
 							</select>
 						</div>
 					}

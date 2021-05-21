@@ -46,7 +46,7 @@ namespace Draughts.Api.Draughts
         
         public bool Equals(Position other)
         {
-            return X == other.X && Y == other.Y;
+            return X == other?.X && Y == other?.Y;
         }
 
         public override bool Equals(object obj)

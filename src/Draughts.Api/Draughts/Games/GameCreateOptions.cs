@@ -23,7 +23,8 @@
 
     public enum Algorithm
     {
-        RandomMoves
+        RandomMoves,
+        Stockfish
     }
 
     public enum Variant
