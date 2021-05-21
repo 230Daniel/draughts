@@ -161,12 +161,9 @@ namespace Draughts.Api.Draughts.Players.Engines
             int pieceScore = board.Pieces.Count(x => x.Colour == _desiredPieceColour) - board.Pieces.Count(x => x.Colour != _desiredPieceColour);
             int kingScore = board.Pieces.Count(x => x.Colour == _desiredPieceColour && x.IsKing) - board.Pieces.Count(x => x.Colour != _desiredPieceColour && x.IsKing);
             int possibleTakesScore = board.Pieces.Where(x => x.Colour == _desiredPieceColour).Sum(x => board.GetPiecesThatCanBeTaken(x).Count);
-            int rawPieceScore = board.Pieces.Count(x => x.Colour == _desiredPieceColour);
-            int trappedPieceScore = board.Pieces.Count(x => x.Colour == _desiredPieceColour.Opposite() && x.PossibleMoves.Count == 0);
-            if (board.GetForcedMoves(_desiredPieceColour.Opposite()).Count > 0) trappedPieceScore = 0;
-            
-            
-            return pieceScore * 10 + kingScore * 5 + possibleTakesScore * 5 + rawPieceScore * 2 + trappedPieceScore * 2;
+            int trappedPieceScore = board.Pieces.Count(x => x.Colour == _desiredPieceColour.Opposite() && x.PossibleMoves.Count == 0) - board.Pieces.Count(x => x.Colour == _desiredPieceColour && x.PossibleMoves.Count == 0);
+
+            return pieceScore * 10 + kingScore * 5 + possibleTakesScore * 5 + trappedPieceScore;
         }
     }
 }
