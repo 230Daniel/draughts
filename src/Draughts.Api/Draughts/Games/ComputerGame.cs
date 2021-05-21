@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Draughts.Api.Draughts
 {
-    public class TwoPlayerGame : IGame
+    public class ComputerGame : IGame
     {
         public string GameCode { get; }
         public GameStatus GameStatus { get; set; }
@@ -19,12 +19,12 @@ namespace Draughts.Api.Draughts
 
         IPlayer _player1;
         IPlayer _player2;
-        
+
         int _turnNumber;
         List<(Position, Position)> _moves;
         int _currentMoveCount;
 
-        public TwoPlayerGame(string gameCode, GameCreateOptions options)
+        public ComputerGame(string gameCode, GameCreateOptions options)
         {
             GameCode = gameCode;
             Options = options;
@@ -37,7 +37,7 @@ namespace Draughts.Api.Draughts
         {
             player.OnMoveSubmitted += OnMoveSubmitted;
             player.OnDisconnected += OnPlayerDisconnected;
-            
+
             if (_player1 is null)
             {
                 _player1 = player;
@@ -48,13 +48,19 @@ namespace Draughts.Api.Draughts
                     Side.Black => PieceColour.Black,
                     _ => PieceColour.White
                 };
-                await _player1.SendWaitingForOpponentAsync();
-            }
-            else if (_player2 is null)
-            {
-                _player2 = player;
+
+                _player2 = Options.Algorithm switch
+                {
+                    Algorithm.RandomMoves => new RandomPlayer(),
+                    _ => _player2
+                };
+                
+                _player2.OnMoveSubmitted += OnMoveSubmitted;
+                _player2.OnDisconnected += OnPlayerDisconnected;
+                
                 _player2.PieceColour = _player1.PieceColour.Opposite();
                 GameStatus = GameStatus.Playing;
+                
                 await SendGameStartedAsync();
                 await SendGameUpdatedAsync(Board.GetForcedMoves(PieceColour.White));
             }
@@ -69,14 +75,15 @@ namespace Draughts.Api.Draughts
             {
                 _moves.Add((before, after));
                 _currentMoveCount++;
-                
+
                 Board.PromoteKings();
                 Board.ApplyPossibleMoves();
 
                 if (moveResult.IsFinished)
                     _turnNumber++;
 
-                PieceColour nextPieceColour = moveResult.IsFinished ? player.PieceColour.Opposite() : player.PieceColour;
+                PieceColour nextPieceColour =
+                    moveResult.IsFinished ? player.PieceColour.Opposite() : player.PieceColour;
                 List<(Position, Position)> newForcedMoves = Board.GetForcedMoves(nextPieceColour);
                 if (!moveResult.IsFinished) newForcedMoves.RemoveAll(x => x.Item1 != moveResult.PositionToMoveAgain);
 
@@ -84,7 +91,7 @@ namespace Draughts.Api.Draughts
 
                 if (moveResult.IsFinished)
                     _currentMoveCount = 0;
-                
+
                 if (Board.GetIsWon(player.PieceColour, out PieceColour winner))
                 {
                     GameStatus = GameStatus.Ended;
@@ -92,7 +99,7 @@ namespace Draughts.Api.Draughts
                 }
             }
         }
-        
+
         Task SendGameStartedAsync()
             => Task.WhenAll(new List<Task>
             {
@@ -108,14 +115,14 @@ namespace Draughts.Api.Draughts
                     Board,
                     forcedMoves,
                     _moves.TakeLast(_currentMoveCount + 1).ToList()),
-                
+
                 _player2.SendGameUpdatedAsync(
                     (PieceColour) (_turnNumber % 2),
                     Board,
                     forcedMoves,
                     _moves.TakeLast(_currentMoveCount + 1).ToList())
             });
-        
+
         Task SendGameEndedAsync(PieceColour winner)
             => Task.WhenAll(new List<Task>
             {
@@ -127,11 +134,11 @@ namespace Draughts.Api.Draughts
         {
             if (player.Equals(_player1) && _player2 is not null)
                 await _player2.SendGameCanceledAsync();
-            
+
             if (player.Equals(_player2) && _player1 is not null)
                 await _player1.SendGameCanceledAsync();
         }
 
-        public TwoPlayerGame() { }
+        public ComputerGame() { }
     }
 }

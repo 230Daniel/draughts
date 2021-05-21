@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Draughts.Api.Extensions;
 
 namespace Draughts.Api.Draughts
 {
@@ -195,7 +196,7 @@ namespace Draughts.Api.Draughts
             return possibleMoves;
         }
 
-        public bool GetIsWon(out PieceColour winner)
+        public bool GetIsWon(PieceColour justPlayed, out PieceColour winner)
         {
             // The game is won if all opposing pieces are eliminated
             PieceColour firstPieceColour = Pieces.First().Colour;
@@ -206,16 +207,10 @@ namespace Draughts.Api.Draughts
             }
             
             // The game is won if all opposing pieces are unable to move
-            List<Piece> whitePieces = Pieces.Where(x => x.Colour == PieceColour.White).ToList();
-            if (whitePieces.All(x => GetPossibleMoves(x).Count == 0))
+            List<Piece> pieces = Pieces.Where(x => x.Colour == justPlayed).ToList();
+            if (pieces.All(x => GetPossibleMoves(x).Count == 0))
             {
-                winner = PieceColour.Black;
-                return true;
-            }
-            List<Piece> blackPieces = Pieces.Where(x => x.Colour == PieceColour.Black).ToList();
-            if (blackPieces.All(x => GetPossibleMoves(x).Count == 0))
-            {
-                winner = PieceColour.White;
+                winner = justPlayed.Opposite();
                 return true;
             }
 

@@ -14,15 +14,15 @@ namespace Draughts.Api.Draughts.Players
         public string Id { get; }
         public PieceColour PieceColour { get; set; }
 
+        public event MoveSubmittedHandler OnMoveSubmitted;
+        public event DisconnectedEventHandler OnDisconnected;
+        
         public HumanPlayer(IHubContext<GameHub> hub, string connectionId)
         {
             _connection = hub.Clients.Client(connectionId);
             Id = connectionId;
         }
-
-        public event MoveSubmittedHandler OnMoveSubmitted;
-        public event DisconnectedEventHandler OnDisconnected;
-
+        
         public void SubmitMove(Position before, Position after)
         {
             OnMoveSubmitted.Invoke(this, before, after);
@@ -37,12 +37,12 @@ namespace Draughts.Api.Draughts.Players
             => _connection.SendAsync("GameStarted", pieceColour);
 
         public Task SendGameUpdatedAsync(
-            int turnNumber, 
+            PieceColour pieceColour, 
             Board board, 
             List<(Position, Position)> forcedMoves, 
             List<(Position, Position)> previousMove)
             => _connection.SendAsync("GameUpdated", 
-                turnNumber, 
+                pieceColour, 
                 board, 
                 forcedMoves.AsTransportable(), 
                 previousMove.AsTransportable());

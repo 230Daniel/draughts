@@ -29,9 +29,14 @@ namespace Draughts.Api.Services
         {
             string gameCode = GetGameCode();
             IGame game;
+            
             if(options.Opponent == Opponent.Player)
                 game = new TwoPlayerGame (gameCode, options);
-            else return null;
+            else if (options.Opponent == Opponent.Computer)
+                game = new ComputerGame(gameCode, options);
+            else
+                return null;
+            
             _games.Add(game);
 
             return game;
