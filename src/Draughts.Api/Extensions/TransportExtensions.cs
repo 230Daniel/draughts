@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Draughts.Api.Game;
+using Draughts.Api.Draughts;
 
 namespace Draughts.Api.Extensions
 {

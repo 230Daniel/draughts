@@ -1,18 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Draughts.Api.Draughts.Players;
 
-namespace Draughts.Api.Game
+namespace Draughts.Api.Draughts
 {
     public interface IGame
     {
         string GameCode { get; }
         GameStatus GameStatus { get; set; }
-        List<User> Players { get; }
         Board Board { get; }
         GameCreateOptions Options { get; }
 
-        Task AddPlayerAsync(User player);
-        Task CancelAsync();
-        Task SubmitMove(User player, Position before, Position after);
+        Task AddPlayerAsync(IPlayer player);
     }
 }

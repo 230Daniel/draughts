@@ -166,11 +166,11 @@ export default class Game extends React.Component{
 			this.setState({error: true, errorMessage: "Lost connection to the server"});
 		});
 
-		window.connection.on("gameEnded", (winner) =>{
-			console.log("Received dispatch GAME_ENDED\nwinner: %i", winner);
+		window.connection.on("gameEnded", (won) =>{
+			console.log("Received dispatch GAME_ENDED\nwon: %i", won);
 
 			setTimeout(() =>{
-				this.setState({exit: true, message: this.state.player === winner ? "Victory!" : "Defeat!"});
+				this.setState({exit: true, message: won ? "Victory!" : "Defeat!"});
 			}, 1000);
 		});
 

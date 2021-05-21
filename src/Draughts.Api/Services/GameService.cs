@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Draughts.Api.Hubs;
-using Draughts.Api.Game;
+using Draughts.Api.Draughts;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
 
@@ -12,7 +12,6 @@ namespace Draughts.Api.Services
     {
         IGame CreateGame(GameCreateOptions options);
         IGame GetGame(string gameCode);
-        IGame GetCurrentUserGame(User user);
     }
 
     public class GameService : IGameService
@@ -31,9 +30,7 @@ namespace Draughts.Api.Services
             string gameCode = GetGameCode();
             IGame game;
             if(options.Opponent == Opponent.Player)
-                game = new TwoPlayerGame (gameCode, options, _hub);
-            else if (options.Opponent == Opponent.Computer)
-                game = new ComputerGame(gameCode, options, _hub);
+                game = new TwoPlayerGame (gameCode, options);
             else return null;
             _games.Add(game);
 
@@ -43,11 +40,6 @@ namespace Draughts.Api.Services
         public IGame GetGame(string gameCode)
         {
             return _games.FirstOrDefault(x => x.GameCode == gameCode);
-        }
-
-        public IGame GetCurrentUserGame(User user)
-        {
-            return _games.FirstOrDefault(x => x.Players.Any(y => y == user));
         }
 
         string GetGameCode()

@@ -37,7 +37,7 @@ namespace Draughts.Api
             services.AddMemoryCache();
             services.AddLogging();
             services.AddSingleton<IGameService, GameService>();
-            services.AddSingleton<IUserService, UserService>();
+            services.AddSingleton<IHumanPlayerService, HumanPlayerService>();
             
             services.Configure<IpRateLimitOptions>(Configuration.GetSection("IpRateLimiting"));
             services.Configure<IpRateLimitPolicies>(Configuration.GetSection("IpRateLimitPolicies"));

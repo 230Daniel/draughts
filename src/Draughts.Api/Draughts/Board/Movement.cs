@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Draughts.Api.Game
+namespace Draughts.Api.Draughts
 {
     public class Movement
     {

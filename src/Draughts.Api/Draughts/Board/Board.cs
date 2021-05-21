@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Draughts.Api.Game
+namespace Draughts.Api.Draughts
 {
     public class Board
     {
@@ -195,7 +195,7 @@ namespace Draughts.Api.Game
             return possibleMoves;
         }
 
-        public bool GetIsWon(out PieceColour? winner)
+        public bool GetIsWon(out PieceColour winner)
         {
             // The game is won if all opposing pieces are eliminated
             PieceColour firstPieceColour = Pieces.First().Colour;
@@ -219,7 +219,7 @@ namespace Draughts.Api.Game
                 return true;
             }
 
-            winner = null;
+            winner = PieceColour.White;
             return false;
         }
         

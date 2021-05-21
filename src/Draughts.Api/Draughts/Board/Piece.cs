@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Draughts.Api.Game
+namespace Draughts.Api.Draughts
 {
     public class Piece
     {
@@ -24,9 +24,5 @@ namespace Draughts.Api.Game
             => new(PieceColour.Black, x, y);
     }
 
-    public enum PieceColour
-    {
-        White,
-        Black
-    }
+    
 }

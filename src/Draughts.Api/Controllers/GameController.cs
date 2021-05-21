@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using Draughts.Api.Game;
+using Draughts.Api.Draughts;
 using Draughts.Api.Services;
 
 namespace Draughts.Api.Controllers

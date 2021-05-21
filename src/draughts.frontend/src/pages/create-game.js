@@ -83,7 +83,7 @@ export default class CreateGame extends React.Component{
 						<select defaultValue={this.state.side} onChange={(e) => { this.setState({side: parseInt(e.target.value)}); }}>
 							<option value="0">Random</option>
 							<option value="1">White</option>
-							<option value="1">Black</option>
+							<option value="2">Black</option>
 						</select>
 					</div>
 				</div>

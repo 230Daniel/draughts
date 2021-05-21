@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
-using Draughts.Api.Game;
+using Draughts.Api.Draughts;
+using Draughts.Api.Draughts.Players;
 using Draughts.Api.Services;
 using Microsoft.AspNetCore.SignalR;
 
@@ -8,40 +9,34 @@ namespace Draughts.Api.Hubs
     public class GameHub : Hub
     {
         IGameService _gameService;
-        IUserService _userService;
+        IHumanPlayerService _humanPlayerService;
 
-        public GameHub(IGameService gameService, IUserService userService)
+        public GameHub(IGameService gameService, IHumanPlayerService humanPlayerService)
         {
             _gameService = gameService;
-            _userService = userService;
+            _humanPlayerService = humanPlayerService;
         }
 
         [HubMethodName("JoinGame")]
         public async Task<IGame> JoinGameAsync(string gameCode)
         {
-            User user = _userService.GetOrCreateUser(Context);
+            IPlayer player = _humanPlayerService.GetOrCreatePlayer(Context);
+            
             IGame game = _gameService.GetGame(gameCode);
             if(game is null || game.GameStatus != GameStatus.Waiting) 
                 return null;
 
-            await game.AddPlayerAsync(user);
+            await game.AddPlayerAsync(player);
             return game;
         }
 
-        [HubMethodName("CancelGame")]
-        public async Task CancelGameAsync()
-        {
-            User user = _userService.GetOrCreateUser(Context);
-            IGame game = _gameService.GetCurrentUserGame(user);
-            await game.CancelAsync();
-        }
-
         [HubMethodName("SubmitMove")]
-        public async Task SubmitMove(int[] current, int[] destination)
+        public void SubmitMove(int[] before, int[] after)
         {
-            User user = _userService.GetOrCreateUser(Context);
-            IGame game = _gameService.GetCurrentUserGame(user);
-            await game.SubmitMove(user, current, destination);
+            if(!_humanPlayerService.TryGetPlayer(Context.ConnectionId, out HumanPlayer player))
+                return;
+
+            player.SubmitMove(before, after);
         }
     }
 }
