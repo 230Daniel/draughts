@@ -5,11 +5,10 @@ using System.Threading.Tasks;
 using Draughts.Api.Extensions;
 using Draughts.Api.Hubs;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Options;
 
-namespace Draughts.Api.Models
+namespace Draughts.Api.Game
 {
-    public class Game
+    public class TwoPlayerGame : IGame
     {
         public string GameCode { get; }
         public GameStatus GameStatus { get; set; }
@@ -18,17 +17,16 @@ namespace Draughts.Api.Models
         public GameCreateOptions Options { get; }
 
         int _turnNumber;
-        List<(Position, Position)> _moves { get; }
-        public int _currentMoveCount { get; set; }
+        List<(Position, Position)> _moves;
+        int _currentMoveCount;
         
         User NextPlayer => Players[_turnNumber % Players.Count];
         IHubContext<GameHub> _hub;
         IClientProxy PlayersConnection => _hub.Clients.Clients(Players.Select(x => x.ConnectionId));
         IClientProxy Player1Connection => _hub.Clients.Clients(Players[0].ConnectionId);
         IClientProxy Player2Connection => _hub.Clients.Clients(Players[1].ConnectionId);
-        IClientProxy NextPlayerConnection => _hub.Clients.Clients(NextPlayer.ConnectionId);
 
-        public Game(string gameCode, GameCreateOptions options, IHubContext<GameHub> hub)
+        public TwoPlayerGame(string gameCode, GameCreateOptions options, IHubContext<GameHub> hub)
         {
             GameCode = gameCode;
             Options = options;
@@ -44,27 +42,20 @@ namespace Draughts.Api.Models
             player.OnDisconnected += OnPlayerDisconnected;
             Players.Add(player);
             
-            bool started = false;
-            if(Options.Opponent == Opponent.Player && Players.Count == 2)
+            if (Players.Count == 2)
             {
                 GameStatus = GameStatus.Playing;
                 await Player1Connection.SendAsync("GameStarted", 0);
                 await Player2Connection.SendAsync("GameStarted", 1);
-                started = true;
-            }
-            else if (Options.Opponent == Opponent.Computer)
-            {
-                await Player1Connection.SendAsync("GameStarted", 0);
-                started = true;
-            }
-            
-            if (started)
-            {
                 await PlayersConnection.SendAsync("GameUpdated", 
                     _turnNumber % 2, 
                     Board, 
                     Board.GetForcedMoves(PieceColour.White).AsTransportable(),
                     _moves.TakeLast(_currentMoveCount + 1));
+            }
+            else
+            {
+                await Player1Connection.SendAsync("WaitingForOpponent");
             }
         }
 
@@ -108,7 +99,6 @@ namespace Draughts.Api.Models
                 {
                     GameStatus = GameStatus.Ended;
                     await PlayersConnection.SendAsync("GameEnded", winner);
-                    return;
                 }
             }
         }
@@ -118,7 +108,7 @@ namespace Draughts.Api.Models
             _ = CancelAsync();
         }
 
-        public Game()
+        public TwoPlayerGame()
         {
             Players = new List<User>();
         }

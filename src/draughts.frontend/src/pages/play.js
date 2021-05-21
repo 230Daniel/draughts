@@ -1,5 +1,4 @@
 import React from "react";
-import { Link, Redirect } from "react-router-dom";
 import Button from "../components/button";
 
 export default class Play extends React.Component{

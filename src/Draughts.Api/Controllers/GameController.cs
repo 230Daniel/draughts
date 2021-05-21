@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using Draughts.Api.Models;
+using Draughts.Api.Game;
 using Draughts.Api.Services;
 
 namespace Draughts.Api.Controllers
@@ -15,16 +15,16 @@ namespace Draughts.Api.Controllers
         }
 
         [HttpPost("game/create")]
-        public IActionResult CreateGame([FromBody] GameCreateOptions options)
+        public IActionResult CreateGame([Required] [FromBody] GameCreateOptions options)
         {
-            Game game = _gameService.CreateGame(options);
+            IGame game = _gameService.CreateGame(options);
             return new JsonResult(game.GameCode);
         }
 
         [HttpGet("game/{gameCode}")]
         public IActionResult Game([Required] string gameCode)
         {
-            Game game = _gameService.GetGame(gameCode);
+            IGame game = _gameService.GetGame(gameCode);
             if (game is null)
                 return new NotFoundResult();
             return new JsonResult(game);

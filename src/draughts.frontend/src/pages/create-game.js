@@ -63,15 +63,15 @@ export default class CreateGame extends React.Component{
 				<div className="menu-box-section">
 					<div className="menu-box-input">
 						<span>Opponent</span>
-						<select defaultValue={this.state.opponent} onChange={(e) => { this.setState({opponent: e.target.value}); }}>
+						<select defaultValue={this.state.opponent} onChange={(e) => { this.setState({opponent: parseInt(e.target.value)}); }}>
 							<option value="0">Player</option>
 							<option value="1">Computer</option>
 						</select>
 					</div>
-					{this.state.opponent === "1" &&
+					{this.state.opponent === 1 &&
 						<div className="menu-box-input">
 							<span>Algorithm</span>
-							<select defaultValue={this.state.algorithm} onChange={(e) => { this.setState({algorithm: e.target.value}); }}>
+							<select defaultValue={this.state.algorithm} onChange={(e) => { this.setState({algorithm: parseInt(e.target.value)}); }}>
 								<option value="0">Random Moves</option>
 							</select>
 						</div>
@@ -80,7 +80,7 @@ export default class CreateGame extends React.Component{
 				<div className="menu-box-section">
 					<div className="menu-box-input">
 						<span>Side</span>
-						<select defaultValue={this.state.side} onChange={(e) => { this.setState({side: e.target.value}); }}>
+						<select defaultValue={this.state.side} onChange={(e) => { this.setState({side: parseInt(e.target.value)}); }}>
 							<option value="0">Random</option>
 							<option value="1">White</option>
 							<option value="1">Black</option>
@@ -90,7 +90,7 @@ export default class CreateGame extends React.Component{
 				<div className="menu-box-section">
 					<div className="menu-box-input">
 						<span>Variant</span>
-						<select defaultValue={this.state.variant} onChange={(e) => { this.setState({variant: e.target.value}); }}>
+						<select defaultValue={this.state.variant} onChange={(e) => { this.setState({variant: parseInt(e.target.value)}); }}>
 							<option value="0">English Draughts</option>
 						</select>
 					</div>
@@ -106,25 +106,11 @@ export default class CreateGame extends React.Component{
 		this.setState({loading: true, loadingStatus: "Creating game..."});
 
 		try {
-			var gameCode = await (await fetch(`${window.BASE_URL}/game/create`, { method: "GET" })).json();
+			var gameCode = await (await fetch(`${window.BASE_URL}/game/create`, { method: "POST", body: JSON.stringify(this.state), headers: {"Content-Type": "application/json"} })).json();
 		} catch (e) {
 			this.setState({error: true, errorMessage: "Failed to create the game"});
 			console.log("error: %O", e);
 			return; 
-		}
-
-		this.setState({loadingStatus: "Connecting to game..."});
-
-		window.connection = new HubConnectionBuilder()
-		.withUrl(`${window.BASE_URL}/gamehub`)
-		.build();
-
-		try{
-			await window.connection.start();
-		} catch (e) {
-			this.setState({error: true, errorMessage: "Failed to connect to the server"});
-			console.log("error: %O", e);
-			return;
 		}
 
 		this.setState({redirect: `/game/${gameCode}`});

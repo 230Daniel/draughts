@@ -82,14 +82,6 @@ export default class Game extends React.Component{
 				</>
 			);
 		}
-		if(this.state.loading || (!this.state.waitingForOpponent && !this.state.playing)){
-			return (
-				<>
-					<span className="menu-box-title">{this.state.message}</span>
-					<Loading/>
-				</>
-			);
-		}
 		if(this.state.waitingForOpponent){
 			return(
 				<>
@@ -106,6 +98,14 @@ export default class Game extends React.Component{
 						}}>Back</button>
 					</div>
 					
+				</>
+			);
+		}
+		if(this.state.loading || (!this.state.waitingForOpponent && !this.state.playing)){
+			return (
+				<>
+					<span className="menu-box-title">{this.state.message}</span>
+					<Loading/>
 				</>
 			);
 		}
@@ -132,6 +132,11 @@ export default class Game extends React.Component{
 		}
 
 		this.setState({message: "Getting ready..."});
+
+		window.connection.on("waitingForOpponent", (player) =>{
+			console.log("Received dispatch WAITING_FOR_OPPONENT");
+			this.setState({waitingForOpponent: true})
+		});
 
 		window.connection.on("gameStarted", (player) =>{
 			console.log("Received dispatch GAME_STARTED\nplayer: %i", player);
@@ -176,9 +181,6 @@ export default class Game extends React.Component{
 			if(!game){
 				this.setState({error: true, errorMessage: "Failed to join the game"});
 				return;
-			}
-			if(game.players.length === 1){
-				this.setState({loading: false, waitingForOpponent: true});
 			}
 		} catch (e) {
 			this.setState({error: true, errorMessage: "Failed to join the game"});

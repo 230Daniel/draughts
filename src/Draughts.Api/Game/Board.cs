@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Draughts.Api.Models
+namespace Draughts.Api.Game
 {
     public class Board
     {

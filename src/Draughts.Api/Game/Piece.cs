@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Draughts.Api.Models
+namespace Draughts.Api.Game
 {
     public class Piece
     {

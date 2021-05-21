@@ -1,4 +1,4 @@
-﻿namespace Draughts.Api.Models
+﻿namespace Draughts.Api.Game
 {
     public class MoveResult
     {

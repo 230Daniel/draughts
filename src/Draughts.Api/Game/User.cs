@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.SignalR;
 
-namespace Draughts.Api.Models
+namespace Draughts.Api.Game
 {
     public class User
     {

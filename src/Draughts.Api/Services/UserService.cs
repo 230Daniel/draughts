@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Draughts.Api.Models;
+using Draughts.Api.Game;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Draughts.Api.Services
