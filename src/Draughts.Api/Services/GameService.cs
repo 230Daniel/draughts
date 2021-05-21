@@ -4,12 +4,13 @@ using System.Linq;
 using Draughts.Api.Hubs;
 using Draughts.Api.Models;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
 
 namespace Draughts.Api.Services
 {
     public interface IGameService
     {
-        Game CreateGame();
+        Game CreateGame(GameCreateOptions options);
         Game GetGame(string gameCode);
         Game GetCurrentUserGame(User user);
     }
@@ -25,10 +26,10 @@ namespace Draughts.Api.Services
             _games = new List<Game>();
         }
 
-        public Game CreateGame()
+        public Game CreateGame(GameCreateOptions options)
         {
             string gameCode = GetGameCode();
-            Game game = new Game(gameCode, _hub);
+            Game game = new (gameCode, options, _hub);
             _games.Add(game);
 
             return game;

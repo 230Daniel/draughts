@@ -14,10 +14,10 @@ namespace Draughts.Api.Controllers
             _gameService = gameService;
         }
 
-        [HttpGet("game/create")]
-        public IActionResult CreateGame()
+        [HttpPost("game/create")]
+        public IActionResult CreateGame([FromBody] GameCreateOptions options)
         {
-            Game game = _gameService.CreateGame();
+            Game game = _gameService.CreateGame(options);
             return new JsonResult(game.GameCode);
         }
 

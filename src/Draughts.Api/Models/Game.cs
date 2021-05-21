@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Draughts.Api.Extensions;
 using Draughts.Api.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
 
 namespace Draughts.Api.Models
 {
@@ -14,6 +15,7 @@ namespace Draughts.Api.Models
         public GameStatus GameStatus { get; set; }
         public List<User> Players { get; }
         public Board Board { get; }
+        public GameCreateOptions Options { get; }
 
         int _turnNumber;
         List<(Position, Position)> _moves { get; }
@@ -26,9 +28,10 @@ namespace Draughts.Api.Models
         IClientProxy Player2Connection => _hub.Clients.Clients(Players[1].ConnectionId);
         IClientProxy NextPlayerConnection => _hub.Clients.Clients(NextPlayer.ConnectionId);
 
-        public Game(string gameCode, IHubContext<GameHub> hub)
+        public Game(string gameCode, GameCreateOptions options, IHubContext<GameHub> hub)
         {
             GameCode = gameCode;
+            Options = options;
             GameStatus = GameStatus.Waiting;
             Players = new();
             Board = new();
@@ -38,20 +41,31 @@ namespace Draughts.Api.Models
 
         public async Task AddPlayerAsync(User player)
         {
+            player.OnDisconnected += OnPlayerDisconnected;
             Players.Add(player);
-            if (Players.Count == 2)
+            
+            bool started = false;
+            if(Options.Opponent == Opponent.Player && Players.Count == 2)
             {
                 GameStatus = GameStatus.Playing;
                 await Player1Connection.SendAsync("GameStarted", 0);
                 await Player2Connection.SendAsync("GameStarted", 1);
+                started = true;
+            }
+            else if (Options.Opponent == Opponent.Computer)
+            {
+                await Player1Connection.SendAsync("GameStarted", 0);
+                started = true;
+            }
+            
+            if (started)
+            {
                 await PlayersConnection.SendAsync("GameUpdated", 
                     _turnNumber % 2, 
                     Board, 
                     Board.GetForcedMoves(PieceColour.White).AsTransportable(),
                     _moves.TakeLast(_currentMoveCount + 1));
             }
-
-            player.OnDisconnected += OnPlayerDisconnected;
         }
 
         public async Task CancelAsync()
