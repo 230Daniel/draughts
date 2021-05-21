@@ -88,10 +88,10 @@ namespace Draughts.Api.Draughts
                 List<(Position, Position)> newForcedMoves = Board.GetForcedMoves(nextPieceColour);
                 if (!moveResult.IsFinished) newForcedMoves.RemoveAll(x => x.Item1 != moveResult.PositionToMoveAgain);
 
-                await SendGameUpdatedAsync(newForcedMoves);
-
                 if (moveResult.IsFinished)
                     _currentMoveCount = 0;
+                
+                await SendGameUpdatedAsync(newForcedMoves);
 
                 if (Board.GetIsWon(player.PieceColour, out PieceColour winner))
                 {

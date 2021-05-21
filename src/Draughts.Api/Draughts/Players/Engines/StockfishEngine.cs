@@ -21,7 +21,6 @@ namespace Draughts.Api.Draughts.Players.Engines
         {
             _desiredPieceColour = pieceColour;
             int score = Max(board, pieceColour, null, _maxDepth, int.MinValue, int.MaxValue, out var bestMove);
-            Console.WriteLine($"Score: {score}");
             return bestMove;
         }
 
@@ -143,9 +142,6 @@ namespace Draughts.Api.Draughts.Players.Engines
             return bestScore;
         }
 
-        bool IsBoardTerminated(Board board, PieceColour justPlayed)
-            => board.GetIsWon(justPlayed, out _);
-
         List<(Position, Position)> GetMoves(Board board, PieceColour pieceColour, MoveResult previousMoveResult)
         {
             List<(Position, Position)> moves = new();
@@ -162,7 +158,15 @@ namespace Draughts.Api.Draughts.Players.Engines
         
         int GetScore(Board board)
         {
-            return board.Pieces.Count(x => x.Colour == _desiredPieceColour) - board.Pieces.Count(x => x.Colour != _desiredPieceColour);
+            int pieceScore = board.Pieces.Count(x => x.Colour == _desiredPieceColour) - board.Pieces.Count(x => x.Colour != _desiredPieceColour);
+            int kingScore = board.Pieces.Count(x => x.Colour == _desiredPieceColour && x.IsKing) - board.Pieces.Count(x => x.Colour != _desiredPieceColour && x.IsKing);
+            int possibleTakesScore = board.Pieces.Where(x => x.Colour == _desiredPieceColour).Sum(x => board.GetPiecesThatCanBeTaken(x).Count);
+            int rawPieceScore = board.Pieces.Count(x => x.Colour == _desiredPieceColour);
+            int trappedPieceScore = board.Pieces.Count(x => x.Colour == _desiredPieceColour.Opposite() && x.PossibleMoves.Count == 0);
+            if (board.GetForcedMoves(_desiredPieceColour.Opposite()).Count > 0) trappedPieceScore = 0;
+            
+            
+            return pieceScore * 10 + kingScore * 5 + possibleTakesScore * 5 + rawPieceScore * 2 + trappedPieceScore * 2;
         }
     }
 }

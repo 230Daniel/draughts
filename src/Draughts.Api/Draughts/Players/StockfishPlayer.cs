@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Draughts.Api.Draughts.Players.Engines;
+using Draughts.Api.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace Draughts.Api.Draughts.Players
@@ -11,7 +12,7 @@ namespace Draughts.Api.Draughts.Players
     {
         StockfishEngine _engine;
         
-        public string Id => "Bot Random";
+        public string Id => "Bot Stockfish";
         public PieceColour PieceColour { get; set; }
         
         public event MoveSubmittedHandler OnMoveSubmitted;
@@ -19,7 +20,7 @@ namespace Draughts.Api.Draughts.Players
 
         public StockfishPlayer()
         {
-            _engine = new(5);
+            _engine = new(4);
         }
         
         public Task SendGameStartedAsync(PieceColour pieceColour)
