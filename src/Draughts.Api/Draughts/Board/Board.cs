@@ -10,26 +10,26 @@ namespace Draughts.Api.Draughts
     {
         static readonly string[] DefaultBoard =
         {
-            "B B B B B ",
-            " B B B B B",
-            "B B B B B ",
-            "          ",
-            "          ",
-            " W W W W W",
-            "W W W W W ",
-            " W W W W W"
+            "b b b b ",
+            " b b b b",
+            "b b b b ",
+            "        ",
+            "        ",
+            " w w w w",
+            "w w w w ",
+            " w w w w"
         };
             
         static readonly string[] DebugBoard =
         {
-            "B     w   ",
-            "     B    ",
-            "  B       ",
-            " B B      ",
-            "          ",
-            "          ",
-            "          ",
-            " W        "
+            "        ",
+            "        ",
+            "        ",
+            "        ",
+            "    B   ",
+            "        ",
+            "      W ",
+            "        "
         };
         
         public Tile[,] Tiles { get; }
@@ -53,10 +53,10 @@ namespace Draughts.Api.Draughts
                     Tiles[x, y] = row[x] switch
                     {
                         ' ' => Tile.Empty,
-                        'W' => Tile.WhitePiece,
-                        'B' => Tile.BlackPiece,
-                        'w' => Tile.WhiteKing,
-                        'b' => Tile.BlackKing,
+                        'w' => Tile.WhitePiece,
+                        'b' => Tile.BlackPiece,
+                        'W' => Tile.WhiteKing,
+                        'B' => Tile.BlackKing,
                         _ => Tile.Empty
                     };
                 }
@@ -285,6 +285,28 @@ namespace Draughts.Api.Draughts
                     tile.Piece.IsKing = true;
                 }
             }
+        }
+
+        public string GetDebugString()
+        {
+            string debug = "";
+            for (int y = 0; y < 8; y++)
+            {
+                for (int x = 0; x < 8; x++)
+                {
+                    Tile tile = Tiles[x, y];
+                    debug += Tiles[x, y].IsOccupied switch
+                    {
+                        false => " ",
+                        true when tile.Piece.Colour == PieceColour.White && tile.Piece.IsKing => "W",
+                        true when tile.Piece.Colour == PieceColour.White && !tile.Piece.IsKing => "w",
+                        true when tile.Piece.Colour == PieceColour.Black && tile.Piece.IsKing => "B",
+                        true when tile.Piece.Colour == PieceColour.Black && !tile.Piece.IsKing => "b"
+                    };
+                }
+            }
+
+            return debug;
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Draughts.Api.Extensions;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Draughts.Api.Draughts.Players.Engines
 {
@@ -22,7 +21,8 @@ namespace Draughts.Api.Draughts.Players.Engines
             List<Move> moves = board.GetPossibleMoves(DesiredPieceColour);
             if (moves.Count == 1) return moves[0];
             if (moves.Count == 0) return null;
-            Max(board, _maxDepth, int.MinValue, int.MaxValue, out var bestMove);
+            int score = Max(board, _maxDepth, int.MinValue, int.MaxValue, out var bestMove);
+            Console.WriteLine(score);
             return bestMove;
         }
 
@@ -32,7 +32,7 @@ namespace Draughts.Api.Draughts.Players.Engines
             bestMove = null;
             
             if (board.GetIsWon(out PieceColour? winner) && winner.HasValue)
-                return winner.Value == DesiredPieceColour ? int.MaxValue : int.MinValue;
+                return winner.Value == DesiredPieceColour ? int.MaxValue - (_maxDepth - depth) : int.MinValue + (_maxDepth - depth);
 
             if (depth == 0)
                 return GetScore(board);
@@ -47,7 +47,7 @@ namespace Draughts.Api.Draughts.Players.Engines
 
                 while (!moveResult.IsFinished)
                 {
-                    Max(newBoard, depth, alpha, beta, out var extraMove);
+                    Max(newBoard, depth - 1, alpha, beta, out var extraMove);
                     if (extraMove is null) break;
                     moveResult = newBoard.MovePiece(extraMove);
                 }
@@ -81,7 +81,7 @@ namespace Draughts.Api.Draughts.Players.Engines
             bestMove = null;
             
             if (board.GetIsWon(out PieceColour? winner) && winner.HasValue)
-                return winner.Value == DesiredPieceColour ? int.MaxValue : int.MinValue;
+                return winner.Value == DesiredPieceColour ? int.MaxValue - (_maxDepth - depth) : int.MinValue + (_maxDepth - depth);
 
             if (depth == 0)
                 return GetScore(board);
@@ -96,7 +96,7 @@ namespace Draughts.Api.Draughts.Players.Engines
 
                 while (!moveResult.IsFinished)
                 {
-                    Min(newBoard, depth, alpha, beta, out var extraMove);
+                    Min(newBoard, depth - 1, alpha, beta, out var extraMove);
                     if (extraMove is null) break;
                     moveResult = newBoard.MovePiece(extraMove);
                 }
@@ -126,8 +126,9 @@ namespace Draughts.Api.Draughts.Players.Engines
 
         int GetScore(Board board)
         {
-            int pieceScore = 0;
-            int positionScore = 0;
+            int totalPieces = 0;
+            int pieceAdvantage = 0;
+            int homeRowPieces = 0;
 
             for (int x = 0; x < 8; x++)
             {
@@ -137,29 +138,35 @@ namespace Draughts.Api.Draughts.Players.Engines
                     if (!tile.IsOccupied)
                         continue;
 
+                    totalPieces++;
+                    
                     if (tile.Piece.Colour == DesiredPieceColour)
                     {
-                        pieceScore += 10;
-                        positionScore += GetPositionScore(tile, y);
+                        pieceAdvantage += tile.Piece.IsKing ? 3 : 1;
+                        
+                        // If on home row
+                        if (tile.Piece.Colour == PieceColour.White && y == 7 ||
+                            tile.Piece.Colour == PieceColour.Black && y == 0)
+                        {
+                            homeRowPieces++;
+                        }
                     }
                     else
                     {
-                        pieceScore -= 10;
-                        positionScore -= GetPositionScore(tile, y);
+                        pieceAdvantage -= tile.Piece.IsKing ? 3 : 1;
                     }
                 }
             }
 
-            return pieceScore + positionScore;
-        }
+            // Having a 1-piece advantage when there are 3 pieces left
+            // is much more significant than having a 1-piece advantage when there are 23 left
+            // This means that towards the end of the game, taking a piece becomes more significant than other factors
+            int percentagePieceAdvantage = (int) Math.Ceiling(((double) pieceAdvantage / totalPieces) * 100);
 
-        int GetPositionScore(Tile tile, int y)
-        {
-            if (tile.Piece.IsKing) return 10;
-            if (tile.Piece.Colour == PieceColour.White && y == 7) return 15;
-            if (tile.Piece.Colour == PieceColour.Black && y == 0) return 15;
-            if (tile.Piece.Colour == PieceColour.White) return 7 - y;
-            return y;
+            int pieceAdvantageScore = percentagePieceAdvantage;
+            int homeRowPiecesScore = Math.Max(0, (homeRowPieces - 2) * 10);
+
+            return pieceAdvantageScore + homeRowPiecesScore;
         }
     }
 }

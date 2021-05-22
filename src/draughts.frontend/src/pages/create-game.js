@@ -87,8 +87,6 @@ export default class CreateGame extends React.Component{
 							<option value="4">4 moves</option>
 							<option value="5">5 moves</option>
 							<option value="6">6 moves</option>
-							<option value="7">7 moves</option>
-							<option value="8">8 moves</option>
 							</select>
 						</div>
 					}
