@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Draughts.Api.Extensions;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Draughts.Api.Draughts.Players.Engines
 {
@@ -9,7 +9,7 @@ namespace Draughts.Api.Draughts.Players.Engines
     {
         int _maxDepth;
         Random _random;
-        PieceColour _desiredPieceColour;
+        public PieceColour DesiredPieceColour;
         
         public StockfishEngine(int maxDepth)
         {
@@ -17,50 +17,42 @@ namespace Draughts.Api.Draughts.Players.Engines
             _random = new();
         }
         
-        public (Position, Position) FindBestMove(Board board, PieceColour pieceColour)
+        public Move FindBestMove(Board board)
         {
-            _desiredPieceColour = pieceColour;
-            int score = Max(board, pieceColour, null, _maxDepth, int.MinValue, int.MaxValue, out var bestMove);
+            List<Move> moves = board.GetPossibleMoves(DesiredPieceColour);
+            if (moves.Count == 1) return moves[0];
+            if (moves.Count == 0) return null;
+            Max(board, _maxDepth, int.MinValue, int.MaxValue, out var bestMove);
             return bestMove;
         }
 
-        int Max(Board board, PieceColour colourToPlay, MoveResult previousMoveResult, int depth, int alpha, int beta, out (Position, Position) bestMove)
+        int Max(Board board, int depth, int alpha, int beta, out Move bestMove)
         {
             int bestScore = int.MinValue;
-            bestMove = (null, null);
+            bestMove = null;
             
-            if (board.GetIsWon(colourToPlay.Opposite(), out PieceColour winner))
-            {
-                return winner == _desiredPieceColour ? int.MaxValue : int.MinValue;
-            }
+            if (board.GetIsWon(out PieceColour? winner) && winner.HasValue)
+                return winner.Value == DesiredPieceColour ? int.MaxValue : int.MinValue;
 
             if (depth == 0)
-            {
                 return GetScore(board);
-            }
-            
-            List<(Position, Position)> moves = GetMoves(board, colourToPlay, previousMoveResult);
-            List<(Position, Position)> bestMoves = new();
 
-            foreach ((Position, Position) move in moves)
+            List<Move> moves = board.GetPossibleMoves(board.ColourToMove);
+            List<Move> bestMoves = new();
+
+            foreach (Move move in moves)
             {
                 Board newBoard = board.Copy();
-                MoveResult moveResult = newBoard.MovePiece(move.Item1, move.Item2);
-                newBoard.PromoteKings();
-                newBoard.ApplyPossibleMoves();
+                MoveResult moveResult = newBoard.MovePiece(move);
 
                 while (!moveResult.IsFinished)
                 {
-                    Max(newBoard, colourToPlay, moveResult, depth, alpha, beta, out var extraMove);
-                    if (extraMove.Item1 is null) break;
-                    moveResult = newBoard.MovePiece(extraMove.Item1, extraMove.Item2);
-                    newBoard.PromoteKings();
-                    newBoard.ApplyPossibleMoves();
+                    Max(newBoard, depth, alpha, beta, out var extraMove);
+                    if (extraMove is null) break;
+                    moveResult = newBoard.MovePiece(extraMove);
                 }
-                
-                PieceColour nextColourToPlay = colourToPlay.Opposite();
-                
-                int score = Min(newBoard, nextColourToPlay, null, depth - 1, alpha, beta, out _);
+
+                int score = Min(newBoard, depth - 1, alpha, beta, out _);
                 
                 if (score > bestScore)
                 {
@@ -83,43 +75,33 @@ namespace Draughts.Api.Draughts.Players.Engines
             return bestScore;
         }
 
-        int Min(Board board, PieceColour colourToPlay, MoveResult previousMoveResult, int depth, int alpha, int beta, out (Position, Position) bestMove)
+        int Min(Board board, int depth, int alpha, int beta, out Move bestMove)
         {
             int bestScore = int.MaxValue;
-            bestMove = (null, null);
+            bestMove = null;
             
-            if (board.GetIsWon(colourToPlay.Opposite(), out PieceColour winner))
-            {
-                return winner == _desiredPieceColour ? int.MaxValue : int.MinValue;
-            }
+            if (board.GetIsWon(out PieceColour? winner) && winner.HasValue)
+                return winner.Value == DesiredPieceColour ? int.MaxValue : int.MinValue;
 
             if (depth == 0)
-            {
                 return GetScore(board);
-            }
+
+            List<Move> moves = board.GetPossibleMoves(board.ColourToMove);
+            List<Move> bestMoves = new();
             
-            List<(Position, Position)> moves = GetMoves(board, colourToPlay, previousMoveResult);
-            List<(Position, Position)> bestMoves = new();
-            
-            foreach ((Position, Position) move in moves)
+            foreach (Move move in moves)
             {
                 Board newBoard = board.Copy();
-                MoveResult moveResult = newBoard.MovePiece(move.Item1, move.Item2);
-                newBoard.PromoteKings();
-                newBoard.ApplyPossibleMoves();
-                
+                MoveResult moveResult = newBoard.MovePiece(move);
+
                 while (!moveResult.IsFinished)
                 {
-                    Max(newBoard, colourToPlay, moveResult, depth, alpha, beta, out var extraMove);
-                    if (extraMove.Item1 is null) break;
-                    moveResult = newBoard.MovePiece(extraMove.Item1, extraMove.Item2);
-                    newBoard.PromoteKings();
-                    newBoard.ApplyPossibleMoves();
+                    Min(newBoard, depth, alpha, beta, out var extraMove);
+                    if (extraMove is null) break;
+                    moveResult = newBoard.MovePiece(extraMove);
                 }
-                
-                PieceColour nextColourToPlay = colourToPlay.Opposite();
-                
-                int score = Max(newBoard, nextColourToPlay, null, depth - 1, alpha, beta, out _);
+
+                int score = Max(newBoard, depth - 1, alpha, beta, out _);
 
                 if (score < bestScore)
                 {
@@ -142,28 +124,42 @@ namespace Draughts.Api.Draughts.Players.Engines
             return bestScore;
         }
 
-        List<(Position, Position)> GetMoves(Board board, PieceColour pieceColour, MoveResult previousMoveResult)
-        {
-            List<(Position, Position)> moves = new();
-            foreach (Piece piece in board.Pieces.Where(x => x.Colour == pieceColour))
-                moves.AddRange(piece.PossibleMoves.Select(x => (piece.Position, x)));
-
-            if (previousMoveResult?.PositionToMoveAgain is not null)
-            {
-                moves.RemoveAll(x => x.Item1 != previousMoveResult.PositionToMoveAgain);
-            }
-            
-            return moves;
-        }
-        
         int GetScore(Board board)
         {
-            int pieceScore = board.Pieces.Count(x => x.Colour == _desiredPieceColour) - board.Pieces.Count(x => x.Colour != _desiredPieceColour);
-            int kingScore = board.Pieces.Count(x => x.Colour == _desiredPieceColour && x.IsKing) - board.Pieces.Count(x => x.Colour != _desiredPieceColour && x.IsKing);
-            int possibleTakesScore = board.Pieces.Where(x => x.Colour == _desiredPieceColour).Sum(x => board.GetPiecesThatCanBeTaken(x).Count);
-            int trappedPieceScore = board.Pieces.Count(x => x.Colour == _desiredPieceColour.Opposite() && x.PossibleMoves.Count == 0) - board.Pieces.Count(x => x.Colour == _desiredPieceColour && x.PossibleMoves.Count == 0);
+            int pieceScore = 0;
+            int positionScore = 0;
 
-            return pieceScore * 10 + kingScore * 5 + possibleTakesScore * 5 + trappedPieceScore;
+            for (int x = 0; x < 8; x++)
+            {
+                for (int y = 0; y < 8; y++)
+                {
+                    Tile tile = board.Tiles[x, y];
+                    if (!tile.IsOccupied)
+                        continue;
+
+                    if (tile.Piece.Colour == DesiredPieceColour)
+                    {
+                        pieceScore += 10;
+                        positionScore += GetPositionScore(tile, y);
+                    }
+                    else
+                    {
+                        pieceScore -= 10;
+                        positionScore -= GetPositionScore(tile, y);
+                    }
+                }
+            }
+
+            return pieceScore + positionScore;
+        }
+
+        int GetPositionScore(Tile tile, int y)
+        {
+            if (tile.Piece.IsKing) return 10;
+            if (tile.Piece.Colour == PieceColour.White && y == 7) return 15;
+            if (tile.Piece.Colour == PieceColour.Black && y == 0) return 15;
+            if (tile.Piece.Colour == PieceColour.White) return 7 - y;
+            return y;
         }
     }
 }

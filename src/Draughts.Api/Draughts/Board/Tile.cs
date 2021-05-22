@@ -15,5 +15,7 @@
         public static Tile Empty => new ();
         public static Tile WhitePiece => new(Piece.White());
         public static Tile BlackPiece => new(Piece.Black());
+        public static Tile WhiteKing => new(Piece.WhiteKing());
+        public static Tile BlackKing => new(Piece.BlackKing());
     }
 }

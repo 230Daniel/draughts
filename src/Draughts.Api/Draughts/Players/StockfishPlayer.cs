@@ -18,15 +18,18 @@ namespace Draughts.Api.Draughts.Players
         public event MoveSubmittedHandler OnMoveSubmitted;
         public event DisconnectedEventHandler OnDisconnected;
 
-        public StockfishPlayer()
+        public StockfishPlayer(int maxDepth)
         {
-            _engine = new(4);
+            _engine = new(maxDepth);
         }
-        
-        public Task SendGameStartedAsync(PieceColour pieceColour)
-            => Task.CompletedTask;
 
-        public Task SendGameUpdatedAsync(PieceColour pieceColour, Board board, List<Move> forcedMoves, List<(Position, Position)> previousMove)
+        public Task SendGameStartedAsync(PieceColour pieceColour)
+        {
+            _engine.DesiredPieceColour = pieceColour;
+            return Task.CompletedTask;
+        }
+
+        public Task SendGameUpdatedAsync(PieceColour pieceColour, Board board, List<Move> possibleMoves, List<(Position, Position)> previousMove)
         {
             _ = Task.Run(async () =>
             {
@@ -35,10 +38,10 @@ namespace Draughts.Api.Draughts.Players
                     if (pieceColour != PieceColour) return;
                     Task delay = Task.Delay(750);
                     
-                    (Position, Position) bestMove = _engine.FindBestMove(board, pieceColour);
-
+                    Move bestMove = _engine.FindBestMove(board);
+                    if (bestMove is null) return;
                     await delay;
-                    await OnMoveSubmitted.Invoke(this, bestMove.Item1, bestMove.Item2);
+                    await OnMoveSubmitted.Invoke(this, bestMove.Origin, bestMove.Destination);
                 }
                 catch (Exception ex)
                 {

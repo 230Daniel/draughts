@@ -1,7 +1,6 @@
 import React from "react";
 import { Redirect } from "react-router-dom";
 import Loading from "../components/loading";
-import { HubConnectionBuilder } from "@aspnet/signalr";
 
 import "../styles/menu-box.css";
 
@@ -16,7 +15,8 @@ export default class CreateGame extends React.Component{
 			errorMessage: null,
 
 			opponent: 0,
-			algorithm: 1,
+			algorithm: 0,
+			depth: 4,
 			variant: 0,
 			side: 0
 		}
@@ -72,8 +72,23 @@ export default class CreateGame extends React.Component{
 						<div className="menu-box-input">
 							<span>Algorithm</span>
 							<select defaultValue={this.state.algorithm} onChange={(e) => { this.setState({algorithm: parseInt(e.target.value)}); }}>
-								<option value="0">Random Moves</option>
-								<option value="1">Stockfish</option>
+							<option value="0">MiniMax</option>
+							<option value="1">Random Moves</option>
+							</select>
+						</div>
+					}
+					{this.state.opponent === 1 && this.state.algorithm === 0 &&
+						<div className="menu-box-input">
+							<span>Depth</span>
+							<select defaultValue={this.state.depth} onChange={(e) => { this.setState({depth: parseInt(e.target.value)}); }}>
+							<option value="1">1 move</option>
+							<option value="2">2 moves</option>
+							<option value="3">3 moves</option>
+							<option value="4">4 moves</option>
+							<option value="5">5 moves</option>
+							<option value="6">6 moves</option>
+							<option value="7">7 moves</option>
+							<option value="8">8 moves</option>
 							</select>
 						</div>
 					}

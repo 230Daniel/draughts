@@ -8,42 +8,55 @@ namespace Draughts.Api.Draughts
 {
     public class Board
     {
-        const string DefaultBoard = 
-            "B B B B B " +
-            " B B B B B" +
-            "B B B B B " +
-            "          " +
-            "          " +
-            " W W W W W" +
-            "W W W W W " +
-            " W W W W W";
+        static readonly string[] DefaultBoard =
+        {
+            "B B B B B ",
+            " B B B B B",
+            "B B B B B ",
+            "          ",
+            "          ",
+            " W W W W W",
+            "W W W W W ",
+            " W W W W W"
+        };
+            
+        static readonly string[] DebugBoard =
+        {
+            "B     w   ",
+            "     B    ",
+            "  B       ",
+            " B B      ",
+            "          ",
+            "          ",
+            "          ",
+            " W        "
+        };
         
-        const string DebugBoard = 
-            "          " +
-            "          " +
-            "          " +
-            "          " +
-            "          " +
-            "          " +
-            "          " +
-            " W        ";
-        
-        Tile[,] Tiles { get; }
+        public Tile[,] Tiles { get; }
+        public PieceColour ColourToMove { get; private set; }
+        public Position PositionToMoveAgain { get; private set; }
+        public PieceColour ColourJustMoved { get; private set; }
 
         public Board()
         {
             Tiles = new Tile[8, 8];
-            char[] board = DebugBoard.ToCharArray();
+            ColourToMove = PieceColour.White;
+            PositionToMoveAgain = null;
+
+            string[] board = DefaultBoard;
             
             for (int y = 0; y < 8; y++)
             {
+                string row = board[y];
                 for (int x = 0; x < 8; x++)
                 {
-                    Tiles[x, y] = board[y + x] switch
+                    Tiles[x, y] = row[x] switch
                     {
                         ' ' => Tile.Empty,
                         'W' => Tile.WhitePiece,
                         'B' => Tile.BlackPiece,
+                        'w' => Tile.WhiteKing,
+                        'b' => Tile.BlackKing,
                         _ => Tile.Empty
                     };
                 }
@@ -56,7 +69,7 @@ namespace Draughts.Api.Draughts
         {
             // Get the piece in the specified position
             Tile tile = Tiles[origin.X, origin.Y];
-            if (!tile.IsOccupied)
+            if (!tile.IsOccupied || tile.Piece.Colour != ColourToMove)
                 return MoveResult.Invalid();
             Piece piece = tile.Piece;
 
@@ -71,23 +84,46 @@ namespace Draughts.Api.Draughts
             {
                 Tiles[destination.X, destination.Y].Piece = piece;
                 Tiles[origin.X, origin.Y].Piece = null;
-                Tiles[move.Jumped.X, move.Jumped.Y] = null;
-
+                Tiles[move.Jumped.X, move.Jumped.Y].Piece = null;
+                
+                PositionToMoveAgain = destination;
                 List<Move> possibleExtraMoves = GetPossibleMoves(destination);
+                ColourJustMoved = piece.Colour;
                 PromoteKings();
-                return possibleExtraMoves.Any(x => x.IsJumping) ? 
-                    MoveResult.MoveAgain(destination) : 
-                    MoveResult.FinishMove();
+                
+                if (possibleExtraMoves.All(x => !x.IsJumping))
+                {
+                    PositionToMoveAgain = null;
+                    ColourToMove = ColourToMove.Opposite();
+                    return MoveResult.FinishMove();
+                }
+
+                PositionToMoveAgain = destination;
+                return MoveResult.MoveAgain(destination);
             }
             
             Tiles[destination.X, destination.Y].Piece = piece;
             Tiles[origin.X, origin.Y].Piece = null;
+            
+            PositionToMoveAgain = null;
+            ColourJustMoved = piece.Colour;
             PromoteKings();
+            
+            ColourToMove = ColourToMove.Opposite();
             return MoveResult.FinishMove();
         }
 
+        public MoveResult MovePiece(Move move)
+            => MovePiece(move.Origin, move.Destination);
+
         public List<Move> GetPossibleMoves(Position origin)
         {
+            List<Move> possibleMoves = new();
+            
+            // If a different piece has to move again return an empty list
+            if (PositionToMoveAgain is not null && origin != PositionToMoveAgain)
+                return possibleMoves;
+            
             // Get the piece in the specified position
             Tile tile = Tiles[origin.X, origin.Y];
             if (!tile.IsOccupied) throw new InvalidOperationException("That position is not occupied");
@@ -101,14 +137,13 @@ namespace Draughts.Api.Draughts
                 false when piece.Colour == PieceColour.Black => new[] {1, 2},
                 _ => throw new InvalidOperationException("The piece in that position has invalid properties")
             };
-
-            List<Move> possibleMoves = new();
+            
             bool jumpingMoveAvailable = false;
             
             // Check to see if moving diagonally with each Y movement is valid
             foreach (int movement in possibleYMovements)
             {
-                // We can move by this Y value in both negative and positive X
+                // We can move by this value in both negative and positive X
                 foreach (int xDirection in new[] {-1, 1})
                 {
                     int destX = origin.X + (movement * xDirection);
@@ -150,6 +185,15 @@ namespace Draughts.Api.Draughts
             List<Move> possibleMoves = new();
             bool jumpingMoveAvailable = false;
 
+            if (PositionToMoveAgain is not null)
+            {
+                Tile tile = Tiles[PositionToMoveAgain.X, PositionToMoveAgain.Y];
+                if (!tile.IsOccupied || tile.Piece.Colour != pieceColour)
+                    return possibleMoves;
+                
+                return GetPossibleMoves(PositionToMoveAgain);
+            }
+            
             for (int x = 0; x < 8; x++)
             {
                 for (int y = 0; y < 8; y++)
@@ -170,12 +214,12 @@ namespace Draughts.Api.Draughts
             return possibleMoves;
         }
 
-        public bool GetIsWon(PieceColour justPlayed, out PieceColour? winner)
+        public bool GetIsWon(out PieceColour? winner)
         {
             bool allPiecesEliminated = true;
             foreach (Tile tile in Tiles)
             {
-                if (tile.IsOccupied && tile.Piece.Colour != justPlayed)
+                if (tile.IsOccupied && tile.Piece.Colour != ColourJustMoved)
                 {
                     allPiecesEliminated = false;
                     break;
@@ -184,35 +228,40 @@ namespace Draughts.Api.Draughts
 
             if (allPiecesEliminated)
             {
-                winner = justPlayed;
+                winner = ColourJustMoved;
                 return true;
             }
-
-            bool nextPlayerCanMove = false;
-
-            for (int x = 0; x < 8; x++)
+            
+            // If position to move again is not null we know there is a possible move
+            // If we did this check anyway we would find the opponent has no way to move the position to move again
+            if (PositionToMoveAgain is null)
             {
-                for (int y = 0; y < 8; y++)
+                bool nextPlayerCanMove = false;
+                
+                for (int x = 0; x < 8; x++)
                 {
-                    Tile tile = Tiles[x, y];
-                    if (!tile.IsOccupied || tile.Piece.Colour == justPlayed)
-                        continue;
-
-                    List<Move> moves = GetPossibleMoves((x, y));
-                    if (moves.Any())
+                    for (int y = 0; y < 8; y++)
                     {
-                        nextPlayerCanMove = true;
-                        break;
+                        Tile tile = Tiles[x, y];
+                        if (!tile.IsOccupied || tile.Piece.Colour == ColourJustMoved)
+                            continue;
+
+                        List<Move> moves = GetPossibleMoves((x, y));
+                        if (moves.Any())
+                        {
+                            nextPlayerCanMove = true;
+                            break;
+                        }
                     }
                 }
+                
+                if (!nextPlayerCanMove)
+                {
+                    winner = ColourJustMoved;
+                    return true;
+                }
             }
-
-            if (!nextPlayerCanMove)
-            {
-                winner = justPlayed;
-                return true;
-            }
-
+            
             winner = null;
             return false;
         }

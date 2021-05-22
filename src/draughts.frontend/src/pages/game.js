@@ -48,7 +48,7 @@ export default class Game extends React.Component{
 				board={this.state.board}
 				player={this.state.player}
 				waitingForMove={this.state.turn === this.state.player}
-				forcedMoves={this.state.forcedMoves}
+				possibleMoves={this.state.possibleMoves}
 				previousMove={this.state.previousMove}
 				submitMove={(current, destination) => this.submitMove(current, destination)}
 				ref={this.board}/>
@@ -133,7 +133,7 @@ export default class Game extends React.Component{
 
 		this.setState({message: "Getting ready..."});
 
-		window.connection.on("waitingForOpponent", (player) =>{
+		window.connection.on("waitingForOpponent", () =>{
 			console.log("Received dispatch WAITING_FOR_OPPONENT");
 			this.setState({waitingForOpponent: true})
 		});
@@ -143,16 +143,16 @@ export default class Game extends React.Component{
 			this.setState({waitingForOpponent: false, player: player, message: "Loading..."})
 		});
 
-		window.connection.on("gameUpdated", (turn, board, forcedMoves, previousMove) => {
-			console.log("Received dispatch GAME_UPDATED\nturn: %i\nboard: %O\nforcedMoves: %O\npreviousMove: %O", turn, board, forcedMoves, previousMove);
+		window.connection.on("gameUpdated", (turn, board, possibleMoves, previousMove) => {
+			console.log("Received dispatch GAME_UPDATED\nturn: %i\nboard: %O\npossibleMoves: %O\npreviousMove: %O", turn, board, possibleMoves, previousMove);
 
 			if(this.board.current && previousMove.length > 0){
 				this.board.current.animateMove({ ...previousMove.slice(-1)[0][0]}, {...previousMove.slice(-1)[0][1]});
 				setTimeout(() =>{
-					this.setState({turn: turn, board: board, forcedMoves: forcedMoves, previousMove: previousMove});
+					this.setState({loading: false, playing: true, turn: turn, board: board.tiles, possibleMoves: possibleMoves, previousMove: previousMove});
 				}, 500);
 			} else{
-				this.setState({playing: true, loading: false, turn: turn, board: board, forcedMoves: forcedMoves, previousMove: previousMove});
+				this.setState({loading: false, playing: true, turn: turn, board: board.tiles, possibleMoves: possibleMoves, previousMove: previousMove});
 			}
 			
 		});

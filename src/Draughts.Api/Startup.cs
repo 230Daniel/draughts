@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
 
 namespace Draughts.Api
 {
@@ -33,7 +34,8 @@ namespace Draughts.Api
             });
             
             services.AddControllers();
-            services.AddSignalR();
+            services.AddSignalR()
+                .AddNewtonsoftJsonProtocol();
             services.AddMemoryCache();
             services.AddLogging();
             services.AddSingleton<IGameService, GameService>();

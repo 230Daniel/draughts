@@ -4,6 +4,7 @@
     {
         public Opponent Opponent { get; set; }
         public Algorithm Algorithm { get; set; }
+        public int Depth { get; set; }
         public Side Side { get; set; }
         public Variant Variant { get; set; }
     }
@@ -23,8 +24,8 @@
 
     public enum Algorithm
     {
-        RandomMoves,
-        Stockfish
+        Minimax,
+        RandomMoves
     }
 
     public enum Variant

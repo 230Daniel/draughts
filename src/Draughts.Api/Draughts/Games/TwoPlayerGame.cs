@@ -20,9 +20,7 @@ namespace Draughts.Api.Draughts
         IPlayer _player1;
         IPlayer _player2;
         
-        int _turnNumber;
-        List<(Position, Position)> _moves;
-        int _currentMoveCount;
+        List<(Position, Position)> _previousMove;
 
         public TwoPlayerGame(string gameCode, GameCreateOptions options)
         {
@@ -30,7 +28,7 @@ namespace Draughts.Api.Draughts
             Options = options;
             GameStatus = GameStatus.Waiting;
             Board = new();
-            _moves = new();
+            _previousMove = new();
         }
 
         public async Task AddPlayerAsync(IPlayer player)
@@ -56,39 +54,26 @@ namespace Draughts.Api.Draughts
                 _player2.PieceColour = _player1.PieceColour.Opposite();
                 GameStatus = GameStatus.Playing;
                 await SendGameStartedAsync();
-                await SendGameUpdatedAsync(Board.GetForcedMoves(PieceColour.White));
+                await SendGameUpdatedAsync();
             }
         }
 
         public async Task OnMoveSubmitted(IPlayer player, Position before, Position after)
         {
-            if (player.PieceColour != (PieceColour) (_turnNumber % 2)) return;
-
             MoveResult moveResult = Board.MovePiece(before, after);
             if (moveResult.IsValid)
             {
-                _moves.Add((before, after));
-                _currentMoveCount++;
-                
-                Board.PromoteKings();
-                Board.ApplyPossibleMoves();
+                _previousMove.Add((before, after));
+
+                await SendGameUpdatedAsync();
 
                 if (moveResult.IsFinished)
-                    _turnNumber++;
-
-                PieceColour nextPieceColour = moveResult.IsFinished ? player.PieceColour.Opposite() : player.PieceColour;
-                List<(Position, Position)> newForcedMoves = Board.GetForcedMoves(nextPieceColour);
-                if (!moveResult.IsFinished) newForcedMoves.RemoveAll(x => x.Item1 != moveResult.PositionToMoveAgain);
-
-                await SendGameUpdatedAsync(newForcedMoves);
-
-                if (moveResult.IsFinished)
-                    _currentMoveCount = 0;
+                    _previousMove.Clear();
                 
-                if (Board.GetIsWon(player.PieceColour, out PieceColour winner))
+                if (Board.GetIsWon(out PieceColour? winner) && winner.HasValue)
                 {
                     GameStatus = GameStatus.Ended;
-                    await SendGameEndedAsync(winner);
+                    await SendGameEndedAsync(winner.Value);
                 }
             }
         }
@@ -100,20 +85,20 @@ namespace Draughts.Api.Draughts
                 _player2.SendGameStartedAsync(_player2.PieceColour)
             });
 
-        Task SendGameUpdatedAsync(List<(Position, Position)> forcedMoves)
+        Task SendGameUpdatedAsync()
             => Task.WhenAll(new List<Task>
             {
                 _player1.SendGameUpdatedAsync(
-                    (PieceColour) (_turnNumber % 2),
+                    Board.ColourToMove,
                     Board,
-                    forcedMoves,
-                    _moves.TakeLast(_currentMoveCount + 1).ToList()),
+                    Board.GetPossibleMoves(Board.ColourToMove),
+                    _previousMove),
                 
                 _player2.SendGameUpdatedAsync(
-                    (PieceColour) (_turnNumber % 2),
+                    Board.ColourToMove,
                     Board,
-                    forcedMoves,
-                    _moves.TakeLast(_currentMoveCount + 1).ToList())
+                    Board.GetPossibleMoves(Board.ColourToMove),
+                    _previousMove)
             });
         
         Task SendGameEndedAsync(PieceColour winner)

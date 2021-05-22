@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Draughts.Api.Extensions;
 using Draughts.Api.Hubs;
@@ -37,14 +38,14 @@ namespace Draughts.Api.Draughts.Players
             => _connection.SendAsync("GameStarted", pieceColour);
 
         public Task SendGameUpdatedAsync(
-            PieceColour pieceColour, 
-            Board board, 
-            List<(Position, Position)> forcedMoves, 
+            PieceColour pieceColour,
+            Board board,
+            List<Move> possibleMoves,
             List<(Position, Position)> previousMove)
-            => _connection.SendAsync("GameUpdated", 
-                pieceColour, 
-                board, 
-                forcedMoves.AsTransportable(), 
+            => _connection.SendAsync("GameUpdated",
+                pieceColour,
+                board,
+                possibleMoves,
                 previousMove.AsTransportable());
 
         public Task SendGameCanceledAsync()

@@ -1,7 +1,6 @@
 import React from "react";
 import { Redirect } from "react-router-dom";
 import Loading from "../components/loading";
-import { HubConnectionBuilder } from "@aspnet/signalr";
 
 import "../styles/menu-box.css";
 
@@ -117,16 +116,6 @@ export default class JoinGame extends React.Component{
 	}
 
 	async joinGame(){
-		this.setState({loading: true, loadingStatus: "Fetching game..."});
-
-		try {
-			var game = await (await fetch(`${window.BASE_URL}/game/${this.state.gameCode}`, { method: "GET" })).json();
-		} catch (e) {
-			this.setState({error: true, errorMessage: "Invalid game code"});
-			console.log("error: %O", e);
-			return; 
-		}
-
 		this.setState({redirect: `/game/${this.state.gameCode}`});
 	}
 }

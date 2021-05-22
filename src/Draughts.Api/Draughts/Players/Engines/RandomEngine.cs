@@ -13,13 +13,11 @@ namespace Draughts.Api.Draughts.Players.Engines
             _random = new();
         }
         
-        public (Position, Position) FindBestMove(Board board, PieceColour pieceColour)
+        public (Position, Position) FindRandomMove(Board board, PieceColour pieceColour)
         {
-            List<(Position, Position)> moves = new();
-            foreach (Piece piece in board.Pieces.Where(x => x.Colour == pieceColour))
-                moves.AddRange(piece.PossibleMoves.Select(x => (piece.Position, x)));
-
-            return moves[_random.Next(0, moves.Count)];
+            List<Move> moves = board.GetPossibleMoves(pieceColour);
+            Move move = moves[_random.Next(0, moves.Count)];
+            return (move.Origin, move.Destination);
         }
     }
 }

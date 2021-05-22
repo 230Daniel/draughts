@@ -23,14 +23,14 @@ namespace Draughts.Api.Draughts.Players
         public Task SendGameStartedAsync(PieceColour pieceColour)
             => Task.CompletedTask;
 
-        public Task SendGameUpdatedAsync(PieceColour pieceColour, Board board, List<Move> forcedMoves, List<(Position, Position)> previousMove)
+        public Task SendGameUpdatedAsync(PieceColour pieceColour, Board board, List<Move> possibleMoves, List<(Position, Position)> previousMove)
         {
             _ = Task.Run(async () =>
             {
                 if (pieceColour != PieceColour) return;
                 await Task.Delay(1000);
 
-                (Position, Position) bestMove = _engine.FindBestMove(board, pieceColour);
+                (Position, Position) bestMove = _engine.FindRandomMove(board, pieceColour);
                 await OnMoveSubmitted.Invoke(this, bestMove.Item1, bestMove.Item2);
             });
             return Task.CompletedTask;
