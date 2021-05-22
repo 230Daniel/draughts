@@ -63,7 +63,7 @@ namespace Draughts.Api.Draughts
                 GameStatus = GameStatus.Playing;
                 
                 await SendGameStartedAsync();
-                await SendGameUpdatedAsync(Board.GetForcedMoves(PieceColour.White));
+                await SendGameUpdatedAsync();
             }
         }
 
@@ -71,14 +71,11 @@ namespace Draughts.Api.Draughts
         {
             if (player.PieceColour != (PieceColour) (_turnNumber % 2)) return;
 
-            MoveResult moveResult = Board.Move(before, after);
+            MoveResult moveResult = Board.MovePiece(before, after);
             if (moveResult.IsValid)
             {
                 _moves.Add((before, after));
                 _currentMoveCount++;
-
-                Board.PromoteKings();
-                Board.ApplyPossibleMoves();
 
                 if (moveResult.IsFinished)
                     _turnNumber++;
@@ -108,19 +105,19 @@ namespace Draughts.Api.Draughts
                 _player2.SendGameStartedAsync(_player2.PieceColour)
             });
 
-        Task SendGameUpdatedAsync(List<(Position, Position)> forcedMoves)
+        Task SendGameUpdatedAsync()
             => Task.WhenAll(new List<Task>
             {
                 _player1.SendGameUpdatedAsync(
                     (PieceColour) (_turnNumber % 2),
                     Board,
-                    forcedMoves,
+                    Board.GetPossibleMoves(PieceColour.White),
                     _moves.TakeLast(_currentMoveCount + 1).ToList()),
 
                 _player2.SendGameUpdatedAsync(
                     (PieceColour) (_turnNumber % 2),
                     Board,
-                    forcedMoves,
+                    Board.GetPossibleMoves(PieceColour.White),
                     _moves.TakeLast(_currentMoveCount + 1).ToList())
             });
 

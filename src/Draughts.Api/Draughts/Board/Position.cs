@@ -6,9 +6,8 @@ namespace Draughts.Api.Draughts
     {
         public int X { get; set; }
         public int Y { get; set; }
-        public bool IsValid => X is >= 0 and < 8 && Y is >= 0 and < 8;
 
-        public Position(int x, int y)
+        Position(int x, int y)
         {
             X = x;
             Y = y;
@@ -34,16 +33,6 @@ namespace Draughts.Api.Draughts
         public static bool operator !=(Position left, Position right)
             => !left.Equals(right);
 
-        public static Position operator +(Position position, Movement movement)
-            => (position.X + movement.ChangeInX, position.Y + movement.ChangeInY);
-        
-        public static Position operator -(Position position, Movement movement)
-        {
-            position.X -= movement.ChangeInX;
-            position.Y -= movement.ChangeInY;
-            return position;
-        }
-        
         public bool Equals(Position other)
         {
             return X == other?.X && Y == other?.Y;

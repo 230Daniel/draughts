@@ -13,7 +13,7 @@ namespace Draughts.Api.Draughts.Players
         event DisconnectedEventHandler OnDisconnected;
         
         Task SendGameStartedAsync(PieceColour pieceColour);
-        Task SendGameUpdatedAsync(PieceColour pieceColour, Board board, List<(Position, Position)> forcedMoves, List<(Position, Position)> previousMove);
+        Task SendGameUpdatedAsync(PieceColour pieceColour, Board board, List<Move> forcedMoves, List<(Position, Position)> previousMove);
         Task SendGameCanceledAsync();
         Task SendWaitingForOpponentAsync();
         Task SendGameEndedAsync(bool won);

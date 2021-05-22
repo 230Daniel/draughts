@@ -64,7 +64,7 @@ namespace Draughts.Api.Draughts
         {
             if (player.PieceColour != (PieceColour) (_turnNumber % 2)) return;
 
-            MoveResult moveResult = Board.Move(before, after);
+            MoveResult moveResult = Board.MovePiece(before, after);
             if (moveResult.IsValid)
             {
                 _moves.Add((before, after));

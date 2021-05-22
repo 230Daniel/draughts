@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Draughts.Api.Extensions;
 
@@ -6,232 +8,234 @@ namespace Draughts.Api.Draughts
 {
     public class Board
     {
-        public List<Piece> Pieces { get; set; }
+        const string DefaultBoard = 
+            "B B B B B " +
+            " B B B B B" +
+            "B B B B B " +
+            "          " +
+            "          " +
+            " W W W W W" +
+            "W W W W W " +
+            " W W W W W";
+        
+        const string DebugBoard = 
+            "          " +
+            "          " +
+            "          " +
+            "          " +
+            "          " +
+            "          " +
+            "          " +
+            " W        ";
+        
+        Tile[,] Tiles { get; }
 
         public Board()
         {
-            Pieces = new List<Piece>
+            Tiles = new Tile[8, 8];
+            char[] board = DebugBoard.ToCharArray();
+            
+            for (int y = 0; y < 8; y++)
             {
-                Piece.White(1, 7),
-                Piece.White(3, 7),
-                Piece.White(5, 7),
-                Piece.White(7, 7),
-
-                Piece.White(0, 6),
-                Piece.White(2, 6),
-                Piece.White(4, 6),
-                Piece.White(6, 6),
-                
-                Piece.White(1, 5),
-                Piece.White(3, 5),
-                Piece.White(5, 5),
-                Piece.White(7, 5),
-                
-                
-                Piece.Black(0, 0),
-                Piece.Black(2, 0),
-                Piece.Black(4, 0),
-                Piece.Black(6, 0),
-                
-                Piece.Black(1, 1),
-                Piece.Black(3, 1),
-                Piece.Black(5, 1),
-                Piece.Black(7, 1),
-                
-                Piece.Black(0, 2),
-                Piece.Black(2, 2),
-                Piece.Black(4, 2),
-                Piece.Black(6, 2)
-            };
+                for (int x = 0; x < 8; x++)
+                {
+                    Tiles[x, y] = board[y + x] switch
+                    {
+                        ' ' => Tile.Empty,
+                        'W' => Tile.WhitePiece,
+                        'B' => Tile.BlackPiece,
+                        _ => Tile.Empty
+                    };
+                }
+            }
             
             PromoteKings();
-            ApplyPossibleMoves();
         }
 
-        public MoveResult Move(Position before, Position after)
+        public MoveResult MovePiece(Position origin, Position destination)
         {
-            Piece piece = Pieces.First(x => x.Position == before);
-            Movement m = new(before, after);
-            
-            // Pieces must move diagonally
-            if(!m.IsDiagonal)
+            // Get the piece in the specified position
+            Tile tile = Tiles[origin.X, origin.Y];
+            if (!tile.IsOccupied)
                 return MoveResult.Invalid();
-            
-            // Pieces must take other pieces whenever possible
-            List<(Position, Position)> forcedMoves = GetForcedMoves(piece.Colour);
-            if (forcedMoves.Count > 0 && !forcedMoves.Any(x => x.Item1 == before && x.Item2 == after))
-                return MoveResult.Invalid();
-            
-            // Pieces can not be on top of one another
-            if (Pieces.Any(x => x.Position == after))
+            Piece piece = tile.Piece;
+
+            // Check that the move is possible
+            List<Move> possibleMoves = GetPossibleMoves(origin);
+            Move move = possibleMoves.FirstOrDefault(x => x.Destination == destination);
+            if(move is null)
                 return MoveResult.Invalid();
 
-            // Pieces can not move backwards unless they're a king
-            if (m.Down && !piece.CanMoveDown || m.Up && !piece.CanMoveUp) 
-                return MoveResult.Invalid();
-            
-            // Pieces can not move more than 2 squares
-            if(m.Magnitude > 2)
-                return MoveResult.Invalid();
-            
-            // Pieces must take an enemy piece while moving 2 squares
-            if (m.Magnitude == 2)
+            // If the move jumps a piece and can jump another, award another move
+            if (move.IsJumping)
             {
-                Piece taken = Pieces.FirstOrDefault(x => x.Position == m.GetJumpedPosition());
+                Tiles[destination.X, destination.Y].Piece = piece;
+                Tiles[origin.X, origin.Y].Piece = null;
+                Tiles[move.Jumped.X, move.Jumped.Y] = null;
 
-                if (taken is null || taken.Colour == piece.Colour)
-                    return MoveResult.Invalid();
-
-                Pieces.Remove(taken);
-                piece.Position = after;
-                
-                // Note the piece has not yet been promoted (if it should be),
-                // ... so the turn will end if the piece is about to be promoted
-                // ... and the promoted piece could take a piece.
-                return GetPiecesThatCanBeTaken(piece).Any() ? MoveResult.MoveAgain(after) : MoveResult.FinishMove();
+                List<Move> possibleExtraMoves = GetPossibleMoves(destination);
+                PromoteKings();
+                return possibleExtraMoves.Any(x => x.IsJumping) ? 
+                    MoveResult.MoveAgain(destination) : 
+                    MoveResult.FinishMove();
             }
-
-            // The move passed all checks
-            piece.Position = after;
+            
+            Tiles[destination.X, destination.Y].Piece = piece;
+            Tiles[origin.X, origin.Y].Piece = null;
+            PromoteKings();
             return MoveResult.FinishMove();
         }
 
-        public List<(Position, Position)> GetForcedMoves(PieceColour colour)
+        public List<Move> GetPossibleMoves(Position origin)
         {
-            List<(Position, Position)> forcedMoves = new();
-            List<Piece> friendlyPieces = Pieces.Where(x => x.Colour == colour).ToList();
+            // Get the piece in the specified position
+            Tile tile = Tiles[origin.X, origin.Y];
+            if (!tile.IsOccupied) throw new InvalidOperationException("That position is not occupied");
+            Piece piece = tile.Piece;
 
-            foreach (Piece friendlyPiece in friendlyPieces)
+            // Depending on piece colour and king status, set valid Y movements
+            int[] possibleYMovements = piece.IsKing switch
             {
-                List<Piece> takablePieces = GetPiecesThatCanBeTaken(friendlyPiece);
-                forcedMoves.AddRange(
-                    takablePieces.Select(takablePiece => 
-                        Movement.ByTakingPiece(friendlyPiece.Position, takablePiece)
-                            .AsPositions()));
-            }
+                true => new[] {1, -1, 2, -2},
+                false when piece.Colour == PieceColour.White => new[] {-1, -2},
+                false when piece.Colour == PieceColour.Black => new[] {1, 2},
+                _ => throw new InvalidOperationException("The piece in that position has invalid properties")
+            };
 
-            forcedMoves.RemoveAll(x => !x.Item2.IsValid);
-            return forcedMoves;
-        }
-        
-        public List<Piece> GetPiecesThatCanBeTaken(Piece piece)
-        {
-            List<Piece> takablePieces = new();
+            List<Move> possibleMoves = new();
+            bool jumpingMoveAvailable = false;
             
-            if (piece.CanMoveUp)
+            // Check to see if moving diagonally with each Y movement is valid
+            foreach (int movement in possibleYMovements)
             {
-                Position destination = (piece.Position.X - 2, piece.Position.Y - 2);
-                if (destination.IsValid && Pieces.All(x => x.Position != destination))
+                // We can move by this Y value in both negative and positive X
+                foreach (int xDirection in new[] {-1, 1})
                 {
-                    Piece takable = Pieces.FirstOrDefault(x =>
-                        x.Colour != piece.Colour && x.Position == (piece.Position.X - 1, piece.Position.Y - 1));
-                    if (takable is not null) takablePieces.Add(takable);
-                }
-                destination = (piece.Position.X + 2, piece.Position.Y - 2);
-                if (destination.IsValid && Pieces.All(x => x.Position != destination))
-                {
-                    Piece takable = Pieces.FirstOrDefault(x =>
-                        x.Colour != piece.Colour && x.Position == (piece.Position.X + 1, piece.Position.Y - 1));
-                    if (takable is not null) takablePieces.Add(takable);
-                }
-            }
-            if (piece.CanMoveDown)
-            {
-                Position destination = (piece.Position.X - 2, piece.Position.Y + 2);
-                if (destination.IsValid && Pieces.All(x => x.Position != destination))
-                {
-                    Piece takable = Pieces.FirstOrDefault(x =>
-                        x.Colour != piece.Colour && x.Position == (piece.Position.X - 1, piece.Position.Y + 1));
-                    if (takable is not null) takablePieces.Add(takable);
-                }
-                destination = (piece.Position.X + 2, piece.Position.Y + 2);
-                if (destination.IsValid && Pieces.All(x => x.Position != destination))
-                {
-                    Piece takable = Pieces.FirstOrDefault(x =>
-                        x.Colour != piece.Colour && x.Position == (piece.Position.X + 1, piece.Position.Y + 1));
-                    if (takable is not null) takablePieces.Add(takable);
-                }
-            }
-
-            return takablePieces;
-        }
-
-        public List<Position> GetPossibleMoves(Piece piece)
-        {
-            List<(Position, Position)> forcedMoves = GetForcedMoves(piece.Colour);
-            
-            if (forcedMoves.Any()) return forcedMoves
-                .Where(x => x.Item1 == piece.Position)
-                .Select(x => x.Item2).ToList();
-
-            List<Position> possibleMoves = new();
-
-            // Use existing logic to find valid moves which take pieces
-            List<Piece> takablePieces = GetPiecesThatCanBeTaken(piece);
-            possibleMoves.AddRange(takablePieces.Select(x => Movement.ByTakingPiece(piece.Position, x).AsPositions().Item2));
-            
-            // Get positions for 1 square in the 4 diagonal directions
-            if (piece.CanMoveUp)
-            {
-                Position newPosition = (piece.Position.X - 1, piece.Position.Y - 1);
-                if (Pieces.All(x => x.Position != newPosition))
-                    possibleMoves.Add(newPosition);
+                    int destX = origin.X + (movement * xDirection);
+                    int destY = origin.Y + movement;
                 
-                newPosition = (piece.Position.X + 1, piece.Position.Y - 1);
-                if (Pieces.All(x => x.Position != newPosition))
-                    possibleMoves.Add(newPosition);
-            }
-            if (piece.CanMoveDown)
-            {
-                Position newPosition = (piece.Position.X - 1, piece.Position.Y + 1);
-                if (Pieces.All(x => x.Position != newPosition))
-                    possibleMoves.Add(newPosition);
+                    if (destX is < 0 or > 7 || destY is < 0 or > 7)
+                        continue;
                 
-                newPosition = (piece.Position.X + 1, piece.Position.Y + 1);
-                if (Pieces.All(x => x.Position != newPosition))
-                    possibleMoves.Add(newPosition);
+                    Tile destinationTile = Tiles[destX, destY];
+                    if (destinationTile.IsOccupied)
+                        continue;
+
+                    // If the move is a jump, check that the piece jumped can be jumped
+                    if (movement % 2 == 0)
+                    {
+                        int jumpedX = origin.X + ((movement / 2) * xDirection);
+                        int jumpedY = origin.Y + (movement / 2);
+
+                        Tile jumpedTile = Tiles[jumpedX, jumpedY];
+                        if (!jumpedTile.IsOccupied || jumpedTile.Piece.Colour == piece.Colour)
+                            continue;
+
+                        jumpingMoveAvailable = true;
+                        possibleMoves.Add(Move.Jumping(origin, (destX, destY), (jumpedX, jumpedY)));
+                    }
+                    else
+                        possibleMoves.Add(Move.Simple(origin, (destX, destY)));
+                }
             }
 
-            possibleMoves.RemoveAll(x => !x.IsValid);
+            if (jumpingMoveAvailable)
+                possibleMoves.RemoveAll(x => !x.IsJumping);
+
             return possibleMoves;
         }
 
-        public bool GetIsWon(PieceColour justPlayed, out PieceColour winner)
+        public List<Move> GetPossibleMoves(PieceColour pieceColour)
         {
-            // The game is won if all opposing pieces are eliminated
-            PieceColour firstPieceColour = Pieces.First().Colour;
-            if (Pieces.All(x => x.Colour == firstPieceColour))
+            List<Move> possibleMoves = new();
+            bool jumpingMoveAvailable = false;
+
+            for (int x = 0; x < 8; x++)
             {
-                winner = firstPieceColour;
-                return true;
+                for (int y = 0; y < 8; y++)
+                {
+                    Tile tile = Tiles[x, y];
+                    if (!tile.IsOccupied || tile.Piece.Colour != pieceColour)
+                        continue;
+
+                    List<Move> moves = GetPossibleMoves((x, y));
+                    if (!jumpingMoveAvailable && moves.Any(m => m.IsJumping))
+                        jumpingMoveAvailable = true;
+                    possibleMoves.AddRange(moves);
+                }
             }
             
-            // The game is won if all opposing pieces are unable to move
-            List<Piece> pieces = Pieces.Where(x => x.Colour == justPlayed).ToList();
-            if (pieces.All(x => GetPossibleMoves(x).Count == 0))
+            if (jumpingMoveAvailable)
+                possibleMoves.RemoveAll(x => !x.IsJumping);
+            return possibleMoves;
+        }
+
+        public bool GetIsWon(PieceColour justPlayed, out PieceColour? winner)
+        {
+            bool allPiecesEliminated = true;
+            foreach (Tile tile in Tiles)
             {
-                winner = justPlayed.Opposite();
+                if (tile.IsOccupied && tile.Piece.Colour != justPlayed)
+                {
+                    allPiecesEliminated = false;
+                    break;
+                }
+            }
+
+            if (allPiecesEliminated)
+            {
+                winner = justPlayed;
                 return true;
             }
 
-            winner = PieceColour.White;
+            bool nextPlayerCanMove = false;
+
+            for (int x = 0; x < 8; x++)
+            {
+                for (int y = 0; y < 8; y++)
+                {
+                    Tile tile = Tiles[x, y];
+                    if (!tile.IsOccupied || tile.Piece.Colour == justPlayed)
+                        continue;
+
+                    List<Move> moves = GetPossibleMoves((x, y));
+                    if (moves.Any())
+                    {
+                        nextPlayerCanMove = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!nextPlayerCanMove)
+            {
+                winner = justPlayed;
+                return true;
+            }
+
+            winner = null;
             return false;
         }
-        
-        public void ApplyPossibleMoves()
-        {
-            foreach (Piece piece in Pieces)
-                piece.PossibleMoves = GetPossibleMoves(piece);
-        }
-        
-        public void PromoteKings()
-        {
-            foreach (Piece pieceToPromote in Pieces.Where(ShouldPromote))
-                pieceToPromote.IsKing = true;
-        }
 
-        bool ShouldPromote(Piece piece)
-            => piece.Colour == PieceColour.White && piece.Position.Y == 0 || 
-               piece.Colour == PieceColour.Black && piece.Position.Y == 7;
+        void PromoteKings()
+        {
+            foreach (int y in new[]{0, 7})
+            {
+                PieceColour opposingPieceColour = y switch
+                {
+                    0 => PieceColour.White,
+                    7 => PieceColour.Black
+                };
+                
+                for (int x = 0; x < 8; x++)
+                {
+                    Tile tile = Tiles[x, y];
+                    if (!tile.IsOccupied || tile.Piece.Colour != opposingPieceColour)
+                        continue;
+
+                    tile.Piece.IsKing = true;
+                }
+            }
+        }
     }
 }

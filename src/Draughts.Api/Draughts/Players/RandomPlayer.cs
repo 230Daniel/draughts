@@ -23,7 +23,7 @@ namespace Draughts.Api.Draughts.Players
         public Task SendGameStartedAsync(PieceColour pieceColour)
             => Task.CompletedTask;
 
-        public Task SendGameUpdatedAsync(PieceColour pieceColour, Board board, List<(Position, Position)> forcedMoves, List<(Position, Position)> previousMove)
+        public Task SendGameUpdatedAsync(PieceColour pieceColour, Board board, List<Move> forcedMoves, List<(Position, Position)> previousMove)
         {
             _ = Task.Run(async () =>
             {

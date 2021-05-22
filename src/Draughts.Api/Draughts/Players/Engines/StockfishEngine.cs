@@ -45,7 +45,7 @@ namespace Draughts.Api.Draughts.Players.Engines
             foreach ((Position, Position) move in moves)
             {
                 Board newBoard = board.Copy();
-                MoveResult moveResult = newBoard.Move(move.Item1, move.Item2);
+                MoveResult moveResult = newBoard.MovePiece(move.Item1, move.Item2);
                 newBoard.PromoteKings();
                 newBoard.ApplyPossibleMoves();
 
@@ -53,7 +53,7 @@ namespace Draughts.Api.Draughts.Players.Engines
                 {
                     Max(newBoard, colourToPlay, moveResult, depth, alpha, beta, out var extraMove);
                     if (extraMove.Item1 is null) break;
-                    moveResult = newBoard.Move(extraMove.Item1, extraMove.Item2);
+                    moveResult = newBoard.MovePiece(extraMove.Item1, extraMove.Item2);
                     newBoard.PromoteKings();
                     newBoard.ApplyPossibleMoves();
                 }
@@ -104,7 +104,7 @@ namespace Draughts.Api.Draughts.Players.Engines
             foreach ((Position, Position) move in moves)
             {
                 Board newBoard = board.Copy();
-                MoveResult moveResult = newBoard.Move(move.Item1, move.Item2);
+                MoveResult moveResult = newBoard.MovePiece(move.Item1, move.Item2);
                 newBoard.PromoteKings();
                 newBoard.ApplyPossibleMoves();
                 
@@ -112,7 +112,7 @@ namespace Draughts.Api.Draughts.Players.Engines
                 {
                     Max(newBoard, colourToPlay, moveResult, depth, alpha, beta, out var extraMove);
                     if (extraMove.Item1 is null) break;
-                    moveResult = newBoard.Move(extraMove.Item1, extraMove.Item2);
+                    moveResult = newBoard.MovePiece(extraMove.Item1, extraMove.Item2);
                     newBoard.PromoteKings();
                     newBoard.ApplyPossibleMoves();
                 }
