@@ -33,7 +33,8 @@ namespace Draughts.Api
                     });
             });
             
-            services.AddControllers();
+            services.AddControllers()
+                .AddNewtonsoftJson();
             services.AddSignalR()
                 .AddNewtonsoftJsonProtocol();
             services.AddMemoryCache();
