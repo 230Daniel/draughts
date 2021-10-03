@@ -8,7 +8,11 @@
       "type": "image/x-icon"
     },
     {
-      "src": "checkers.png",
+      "src": "draughts.png",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "crown.svg",
       "type": "image/x-icon"
     }
   ],
