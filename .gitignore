@@ -3,7 +3,7 @@ src/draughts.frontend/build
 src/draughts.frontend/public/config.js
 src/Draughts.Api/bin
 src/Draughts.Api/obj
-src/Draughts.Api/appsettings*
+src/Draughts.Api/appsettings.json
 src/Draughts.Api/Exceptions
 src/Draughts.Api/Logs
 src/.vs
