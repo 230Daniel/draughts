@@ -9,6 +9,7 @@ import Game from "./pages/game";
 import Play from './pages/play';
 import CreateGame from './pages/create-game';
 import JoinGame from "./pages/join-game";
+import About from "./pages/about";
 
 ReactDOM.render(
 	<Router>
@@ -20,6 +21,7 @@ ReactDOM.render(
 				<Route exact path="/join-game" component={JoinGame}/>
 				<Route exact path="/join-game/:gameCode" component={JoinGame}/>
 				<Route exact path="/game/:gameCode" component={Game}/>
+				<Route exact path="/about" component={About}/>
 			</Switch>
 		</Layout>
 	</Router>,

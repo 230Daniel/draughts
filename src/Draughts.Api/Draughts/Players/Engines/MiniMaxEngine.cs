@@ -23,7 +23,7 @@ namespace Draughts.Api.Draughts.Players.Engines
                 var moveResult = newBoard.MovePiece(move);
                 while (!moveResult.IsFinished) moveResult = newBoard.MovePiece(newBoard.GetPossibleMoves(board.ColourToMove)[0]);
                 var eval = MiniMax(newBoard, _maxDepth, int.MinValue, int.MaxValue, false);
-                if (eval > maxEval)
+                if (maxEval == int.MinValue || eval > maxEval)
                 {
                     bestMove = move;
                     maxEval = eval;

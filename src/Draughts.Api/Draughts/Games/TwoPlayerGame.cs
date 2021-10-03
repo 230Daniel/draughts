@@ -107,10 +107,16 @@ namespace Draughts.Api.Draughts
         private async Task OnPlayerDisconnected(IPlayer player)
         {
             if (player.Equals(_player1) && _player2 is not null)
+            {
+                _player1 = null;
                 await _player2.SendGameCanceledAsync();
-            
+            }
+
             if (player.Equals(_player2) && _player1 is not null)
+            {
+                _player2 = null;
                 await _player1.SendGameCanceledAsync();
+            }
         }
 
         public TwoPlayerGame() { }

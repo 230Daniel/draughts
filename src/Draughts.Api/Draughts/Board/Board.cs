@@ -64,29 +64,23 @@ namespace Draughts.Api.Draughts
             PromoteKings();
         }
 
-        public MoveResult MovePiece(Position origin, Position destination)
+        public MoveResult MovePiece(Move move)
         {
             // Get the piece in the specified position
-            var tile = Tiles[origin.X, origin.Y];
+            var tile = Tiles[move.Origin.X, move.Origin.Y];
             if (!tile.IsOccupied || tile.Piece.Colour != ColourToMove)
                 return MoveResult.Invalid();
             var piece = tile.Piece;
 
-            // Check that the move is possible
-            var possibleMoves = GetPossibleMoves(origin);
-            var move = possibleMoves.FirstOrDefault(x => x.Destination == destination);
-            if(move is null)
-                return MoveResult.Invalid();
-
             // If the move jumps a piece and can jump another, award another move
             if (move.IsJumping)
             {
-                Tiles[destination.X, destination.Y].Piece = piece;
-                Tiles[origin.X, origin.Y].Piece = null;
+                Tiles[move.Destination.X, move.Destination.Y].Piece = piece;
+                Tiles[move.Origin.X, move.Origin.Y].Piece = null;
                 Tiles[move.Jumped.X, move.Jumped.Y].Piece = null;
                 
-                PositionToMoveAgain = destination;
-                var possibleExtraMoves = GetPossibleMoves(destination);
+                PositionToMoveAgain = move.Destination;
+                var possibleExtraMoves = GetPossibleMoves(move.Destination);
                 ColourJustMoved = piece.Colour;
                 PromoteKings();
                 
@@ -97,12 +91,12 @@ namespace Draughts.Api.Draughts
                     return MoveResult.FinishMove();
                 }
 
-                PositionToMoveAgain = destination;
-                return MoveResult.MoveAgain(destination);
+                PositionToMoveAgain = move.Destination;
+                return MoveResult.MoveAgain(move.Destination);
             }
             
-            Tiles[destination.X, destination.Y].Piece = piece;
-            Tiles[origin.X, origin.Y].Piece = null;
+            Tiles[move.Destination.X, move.Destination.Y].Piece = piece;
+            Tiles[move.Origin.X, move.Origin.Y].Piece = null;
             
             PositionToMoveAgain = null;
             ColourJustMoved = piece.Colour;
@@ -112,8 +106,14 @@ namespace Draughts.Api.Draughts
             return MoveResult.FinishMove();
         }
 
-        public MoveResult MovePiece(Move move)
-            => MovePiece(move.Origin, move.Destination);
+        public MoveResult MovePiece(Position origin, Position destination)
+        {
+            var possibleMoves = GetPossibleMoves(origin);
+            var move = possibleMoves.FirstOrDefault(x => x.Destination == destination);
+            return move is null
+                ? MoveResult.Invalid()
+                : MovePiece(move);
+        }
 
         public List<Move> GetPossibleMoves(Position origin)
         {

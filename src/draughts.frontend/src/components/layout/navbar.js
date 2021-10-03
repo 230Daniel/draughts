@@ -9,7 +9,7 @@ export default class MyNavbar extends React.Component{
 				<Navbar variant="dark" expand="lg">
 					<div className="container">
 						<Navbar.Brand to="/" as={Link}>
-							<img src="/draughts.png" width="30px" className="d-inline-block align-middle" alt=""/>
+						<img src="/favicon.ico" width="26px" className="d-inline-block align-middle" alt=""/>
 							Draughts
 						</Navbar.Brand>
 						<Navbar.Toggle aria-controls="my-navbar" />
