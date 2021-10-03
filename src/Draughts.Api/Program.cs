@@ -1,24 +1,41 @@
-using Draughts.Services;
+using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace Draughts.Api
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
-        }
+            var host = Host.CreateDefaultBuilder(args)
+                .UseSystemd()
+                .UseSerilog()
+                .ConfigureWebHostDefaults(webBuilder => 
+                    webBuilder.UseStartup<Startup>())
+                .Build();
+            
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(host.Services.GetRequiredService<IConfiguration>())
+                .CreateLogger();
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureLogging(builder => builder
-                    .ClearProviders()
-                    .AddProvider(new LoggerProvider()))
-                .ConfigureWebHostDefaults(webBuilder => webBuilder
-                    .UseStartup<Startup>()
-                );
+            try
+            {
+                Log.Information("Running host");
+                await host.RunAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Crashed");
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
+        }
     }
 }
