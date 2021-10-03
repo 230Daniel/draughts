@@ -4,10 +4,10 @@ namespace Draughts.Api.Draughts
 {
     public class Position : IEquatable<Position>
     {
-        public int X { get; set; }
-        public int Y { get; set; }
+        public int X { get; }
+        public int Y { get; }
 
-        Position(int x, int y)
+        private Position(int x, int y)
         {
             X = x;
             Y = y;
@@ -25,7 +25,7 @@ namespace Draughts.Api.Draughts
             => new(value[0], value[1]);
         
         public static implicit operator int[](Position value)
-            => new int[]{value.X, value.Y};
+            => new[]{value.X, value.Y};
         
         public static bool operator ==(Position left, Position right)
             => left.Equals(right);

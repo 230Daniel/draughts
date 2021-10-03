@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Draughts.Api.Extensions.ArrayExtensions;
-using Newtonsoft.Json;
 
 namespace Draughts.Api.Extensions
 {
@@ -33,7 +32,7 @@ namespace Draughts.Api.Extensions
                 var arrayType = typeToReflect.GetElementType();
                 if (IsPrimitive(arrayType) == false)
                 {
-                    Array clonedArray = (Array)cloneObject;
+                    var clonedArray = (Array)cloneObject;
                     clonedArray.ForEach((array, indices) => array.SetValue(InternalCopy(clonedArray.GetValue(indices), visited), indices));
                 }
 
@@ -55,7 +54,7 @@ namespace Draughts.Api.Extensions
 
         private static void CopyFields(object originalObject, IDictionary<object, object> visited, object cloneObject, Type typeToReflect, BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy, Func<FieldInfo, bool> filter = null)
         {
-            foreach (FieldInfo fieldInfo in typeToReflect.GetFields(bindingFlags))
+            foreach (var fieldInfo in typeToReflect.GetFields(bindingFlags))
             {
                 if (filter != null && filter(fieldInfo) == false) continue;
                 if (IsPrimitive(fieldInfo.FieldType)) continue;
@@ -90,7 +89,7 @@ namespace Draughts.Api.Extensions
             public static void ForEach(this Array array, Action<Array, int[]> action)
             {
                 if (array.LongLength == 0) return;
-                ArrayTraverse walker = new ArrayTraverse(array);
+                var walker = new ArrayTraverse(array);
                 do action(array, walker.Position);
                 while (walker.Step());
             }
@@ -98,27 +97,27 @@ namespace Draughts.Api.Extensions
 
         internal class ArrayTraverse
         {
-            public int[] Position;
-            private int[] maxLengths;
+            public readonly int[] Position;
+            private int[] _maxLengths;
 
             public ArrayTraverse(Array array)
             {
-                maxLengths = new int[array.Rank];
-                for (int i = 0; i < array.Rank; ++i)
+                _maxLengths = new int[array.Rank];
+                for (var i = 0; i < array.Rank; ++i)
                 {
-                    maxLengths[i] = array.GetLength(i) - 1;
+                    _maxLengths[i] = array.GetLength(i) - 1;
                 }
                 Position = new int[array.Rank];
             }
 
             public bool Step()
             {
-                for (int i = 0; i < Position.Length; ++i)
+                for (var i = 0; i < Position.Length; ++i)
                 {
-                    if (Position[i] < maxLengths[i])
+                    if (Position[i] < _maxLengths[i])
                     {
                         Position[i]++;
-                        for (int j = 0; j < i; j++)
+                        for (var j = 0; j < i; j++)
                         {
                             Position[j] = 0;
                         }

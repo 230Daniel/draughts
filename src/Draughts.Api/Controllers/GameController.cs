@@ -7,7 +7,7 @@ namespace Draughts.Api.Controllers
 {
     public class GameController : Controller
     {
-        IGameService _gameService;
+        private IGameService _gameService;
 
         public GameController(IGameService gameService)
         {
@@ -20,14 +20,14 @@ namespace Draughts.Api.Controllers
             if (options.Depth is < 0 or > 6)
                 return BadRequest();
             
-            IGame game = _gameService.CreateGame(options);
+            var game = _gameService.CreateGame(options);
             return new JsonResult(game.GameCode);
         }
 
         [HttpGet("game/{gameCode}")]
         public IActionResult Game([Required] string gameCode)
         {
-            IGame game = _gameService.GetGame(gameCode);
+            var game = _gameService.GetGame(gameCode);
             if (game is null)
                 return new NotFoundResult();
             return new JsonResult(game);

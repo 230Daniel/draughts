@@ -8,8 +8,8 @@ namespace Draughts.Api.Hubs
 {
     public class GameHub : Hub
     {
-        IGameService _gameService;
-        IHumanPlayerService _humanPlayerService;
+        private IGameService _gameService;
+        private IHumanPlayerService _humanPlayerService;
 
         public GameHub(IGameService gameService, IHumanPlayerService humanPlayerService)
         {
@@ -22,7 +22,7 @@ namespace Draughts.Api.Hubs
         {
             IPlayer player = _humanPlayerService.GetOrCreatePlayer(Context);
             
-            IGame game = _gameService.GetGame(gameCode);
+            var game = _gameService.GetGame(gameCode);
             if(game is null || game.GameStatus != GameStatus.Waiting) 
                 return null;
 
@@ -33,7 +33,7 @@ namespace Draughts.Api.Hubs
         [HubMethodName("SubmitMove")]
         public void SubmitMove(int[] before, int[] after)
         {
-            if(!_humanPlayerService.TryGetPlayer(Context.ConnectionId, out HumanPlayer player))
+            if(!_humanPlayerService.TryGetPlayer(Context.ConnectionId, out var player))
                 return;
 
             player.SubmitMove(before, after);

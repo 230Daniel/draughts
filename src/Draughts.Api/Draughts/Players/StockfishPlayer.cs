@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Draughts.Api.Draughts.Players.Engines;
-using Draughts.Api.Extensions;
-using Microsoft.Extensions.Logging;
 
 namespace Draughts.Api.Draughts.Players
 {
     public class StockfishPlayer : IPlayer
     {
-        StockfishEngine _engine;
+        private StockfishEngine _engine;
         
         public string Id => "Bot Stockfish";
         public PieceColour PieceColour { get; set; }
@@ -36,9 +33,9 @@ namespace Draughts.Api.Draughts.Players
                 try
                 {
                     if (pieceColour != PieceColour) return;
-                    Task delay = Task.Delay(750);
+                    var delay = Task.Delay(750);
                     
-                    Move bestMove = _engine.FindBestMove(board);
+                    var bestMove = _engine.FindBestMove(board);
                     if (bestMove is null) return;
                     await delay;
                     await OnMoveSubmitted.Invoke(this, bestMove.Origin, bestMove.Destination);

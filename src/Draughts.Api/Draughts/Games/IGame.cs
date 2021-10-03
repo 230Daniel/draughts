@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Draughts.Api.Draughts.Players;
 
 namespace Draughts.Api.Draughts

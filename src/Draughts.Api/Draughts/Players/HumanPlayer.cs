@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Draughts.Api.Extensions;
 using Draughts.Api.Hubs;
@@ -10,7 +8,7 @@ namespace Draughts.Api.Draughts.Players
 {
     public class HumanPlayer : IPlayer
     {
-        IClientProxy _connection;
+        private IClientProxy _connection;
 
         public string Id { get; }
         public PieceColour PieceColour { get; set; }

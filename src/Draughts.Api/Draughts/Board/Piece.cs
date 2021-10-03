@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Draughts.Api.Draughts
+﻿namespace Draughts.Api.Draughts
 {
     public class Piece
     {

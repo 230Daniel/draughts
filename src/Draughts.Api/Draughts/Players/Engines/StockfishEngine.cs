@@ -6,8 +6,8 @@ namespace Draughts.Api.Draughts.Players.Engines
 {
     public class StockfishEngine
     {
-        int _maxDepth;
-        Random _random;
+        private int _maxDepth;
+        private Random _random;
         public PieceColour DesiredPieceColour;
         
         public StockfishEngine(int maxDepth)
@@ -18,32 +18,32 @@ namespace Draughts.Api.Draughts.Players.Engines
         
         public Move FindBestMove(Board board)
         {
-            List<Move> moves = board.GetPossibleMoves(DesiredPieceColour);
+            var moves = board.GetPossibleMoves(DesiredPieceColour);
             if (moves.Count == 1) return moves[0];
             if (moves.Count == 0) return null;
-            int score = Max(board, _maxDepth, int.MinValue, int.MaxValue, out var bestMove);
+            var score = Max(board, _maxDepth, int.MinValue, int.MaxValue, out var bestMove);
             Console.WriteLine(score);
             return bestMove;
         }
 
-        int Max(Board board, int depth, int alpha, int beta, out Move bestMove)
+        private int Max(Board board, int depth, int alpha, int beta, out Move bestMove)
         {
-            int bestScore = int.MinValue;
+            var bestScore = int.MinValue;
             bestMove = null;
             
-            if (board.GetIsWon(out PieceColour? winner) && winner.HasValue)
+            if (board.GetIsWon(out var winner) && winner.HasValue)
                 return winner.Value == DesiredPieceColour ? int.MaxValue - (_maxDepth - depth) : int.MinValue + (_maxDepth - depth);
 
             if (depth == 0)
                 return GetScore(board);
 
-            List<Move> moves = board.GetPossibleMoves(board.ColourToMove);
+            var moves = board.GetPossibleMoves(board.ColourToMove);
             List<Move> bestMoves = new();
 
-            foreach (Move move in moves)
+            foreach (var move in moves)
             {
-                Board newBoard = board.Copy();
-                MoveResult moveResult = newBoard.MovePiece(move);
+                var newBoard = board.Copy();
+                var moveResult = newBoard.MovePiece(move);
 
                 while (!moveResult.IsFinished)
                 {
@@ -52,7 +52,7 @@ namespace Draughts.Api.Draughts.Players.Engines
                     moveResult = newBoard.MovePiece(extraMove);
                 }
 
-                int score = Min(newBoard, depth - 1, alpha, beta, out _);
+                var score = Min(newBoard, depth - 1, alpha, beta, out _);
                 
                 if (score > bestScore)
                 {
@@ -75,24 +75,24 @@ namespace Draughts.Api.Draughts.Players.Engines
             return bestScore;
         }
 
-        int Min(Board board, int depth, int alpha, int beta, out Move bestMove)
+        private int Min(Board board, int depth, int alpha, int beta, out Move bestMove)
         {
-            int bestScore = int.MaxValue;
+            var bestScore = int.MaxValue;
             bestMove = null;
             
-            if (board.GetIsWon(out PieceColour? winner) && winner.HasValue)
+            if (board.GetIsWon(out var winner) && winner.HasValue)
                 return winner.Value == DesiredPieceColour ? int.MaxValue - (_maxDepth - depth) : int.MinValue + (_maxDepth - depth);
 
             if (depth == 0)
                 return GetScore(board);
 
-            List<Move> moves = board.GetPossibleMoves(board.ColourToMove);
+            var moves = board.GetPossibleMoves(board.ColourToMove);
             List<Move> bestMoves = new();
             
-            foreach (Move move in moves)
+            foreach (var move in moves)
             {
-                Board newBoard = board.Copy();
-                MoveResult moveResult = newBoard.MovePiece(move);
+                var newBoard = board.Copy();
+                var moveResult = newBoard.MovePiece(move);
 
                 while (!moveResult.IsFinished)
                 {
@@ -101,7 +101,7 @@ namespace Draughts.Api.Draughts.Players.Engines
                     moveResult = newBoard.MovePiece(extraMove);
                 }
 
-                int score = Max(newBoard, depth - 1, alpha, beta, out _);
+                var score = Max(newBoard, depth - 1, alpha, beta, out _);
 
                 if (score < bestScore)
                 {
@@ -124,17 +124,17 @@ namespace Draughts.Api.Draughts.Players.Engines
             return bestScore;
         }
 
-        int GetScore(Board board)
+        private int GetScore(Board board)
         {
-            int totalPieces = 0;
-            int pieceAdvantage = 0;
-            int homeRowPieces = 0;
+            var totalPieces = 0;
+            var pieceAdvantage = 0;
+            var homeRowPieces = 0;
 
-            for (int x = 0; x < 8; x++)
+            for (var x = 0; x < 8; x++)
             {
-                for (int y = 0; y < 8; y++)
+                for (var y = 0; y < 8; y++)
                 {
-                    Tile tile = board.Tiles[x, y];
+                    var tile = board.Tiles[x, y];
                     if (!tile.IsOccupied)
                         continue;
 
@@ -161,10 +161,10 @@ namespace Draughts.Api.Draughts.Players.Engines
             // Having a 1-piece advantage when there are 3 pieces left
             // is much more significant than having a 1-piece advantage when there are 23 left
             // This means that towards the end of the game, taking a piece becomes more significant than other factors
-            int percentagePieceAdvantage = (int) Math.Ceiling(((double) pieceAdvantage / totalPieces) * 100);
+            var percentagePieceAdvantage = (int) Math.Ceiling(((double) pieceAdvantage / totalPieces) * 100);
 
-            int pieceAdvantageScore = percentagePieceAdvantage;
-            int homeRowPiecesScore = Math.Max(0, (homeRowPieces - 2) * 10);
+            var pieceAdvantageScore = percentagePieceAdvantage;
+            var homeRowPiecesScore = Math.Max(0, (homeRowPieces - 2) * 10);
 
             return pieceAdvantageScore + homeRowPiecesScore;
         }

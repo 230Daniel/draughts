@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Draughts.Api.Draughts.Players.Engines;
 
@@ -7,7 +6,7 @@ namespace Draughts.Api.Draughts.Players
 {
     public class RandomPlayer : IPlayer
     {
-        RandomEngine _engine;
+        private RandomEngine _engine;
         
         public string Id => "Bot Random";
         public PieceColour PieceColour { get; set; }
@@ -30,7 +29,7 @@ namespace Draughts.Api.Draughts.Players
                 if (pieceColour != PieceColour) return;
                 await Task.Delay(1000);
 
-                (Position, Position) bestMove = _engine.FindRandomMove(board, pieceColour);
+                var bestMove = _engine.FindRandomMove(board, pieceColour);
                 await OnMoveSubmitted.Invoke(this, bestMove.Item1, bestMove.Item2);
             });
             return Task.CompletedTask;
