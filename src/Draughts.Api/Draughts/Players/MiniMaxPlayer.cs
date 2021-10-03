@@ -5,24 +5,24 @@ using Draughts.Api.Draughts.Players.Engines;
 
 namespace Draughts.Api.Draughts.Players
 {
-    public class StockfishPlayer : IPlayer
+    public class MiniMaxPlayer : IPlayer
     {
-        private StockfishEngine _engine;
+        private MiniMaxEngine _engine;
         
-        public string Id => "Bot Stockfish";
+        public string Id => "Bot MiniMax";
         public PieceColour PieceColour { get; set; }
         
         public event MoveSubmittedHandler OnMoveSubmitted;
         public event DisconnectedEventHandler OnDisconnected;
 
-        public StockfishPlayer(int maxDepth)
+        public MiniMaxPlayer(int maxDepth)
         {
             _engine = new(maxDepth);
         }
 
         public Task SendGameStartedAsync(PieceColour pieceColour)
         {
-            _engine.DesiredPieceColour = pieceColour;
+            _engine.MyPieceColour = pieceColour;
             return Task.CompletedTask;
         }
 

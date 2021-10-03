@@ -57,11 +57,10 @@ export default class Game extends React.Component{
 	}
 
 	renderMenuBoxContent(){
-		if(this.state.error){
+		if(this.state.exit){
 			return (
 				<>
-					<span className="menu-box-title">Error</span>
-					<span className="menu-box-message">{this.state.errorMessage}</span>
+					<span className="menu-box-title">{this.state.message}</span>
 					<div className="center">
 						<button className="menu-box-button" onClick={() => {
 							this.setState({redirect: "/play"})
@@ -70,10 +69,11 @@ export default class Game extends React.Component{
 				</>
 			);
 		}
-		if(this.state.exit){
+		if(this.state.error){
 			return (
 				<>
-					<span className="menu-box-title">{this.state.message}</span>
+					<span className="menu-box-title">Error</span>
+					<span className="menu-box-message">{this.state.errorMessage}</span>
 					<div className="center">
 						<button className="menu-box-button" onClick={() => {
 							this.setState({redirect: "/play"})

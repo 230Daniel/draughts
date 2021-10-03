@@ -24,7 +24,7 @@
 
     public enum Algorithm
     {
-        Minimax,
+        MiniMax,
         RandomMoves
     }
 

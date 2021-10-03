@@ -77,7 +77,6 @@ namespace Draughts.Api.Extensions
         }
         public override int GetHashCode(object obj)
         {
-            if (obj == null) return 0;
             return obj.GetHashCode();
         }
     }

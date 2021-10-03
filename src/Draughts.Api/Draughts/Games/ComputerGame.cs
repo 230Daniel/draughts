@@ -46,7 +46,7 @@ namespace Draughts.Api.Draughts
                 _player2 = Options.Algorithm switch
                 {
                     Algorithm.RandomMoves => new RandomPlayer(),
-                    Algorithm.Minimax => new StockfishPlayer(Options.Depth),
+                    Algorithm.MiniMax => new MiniMaxPlayer(Options.Depth),
                     _ => _player2
                 };
                 
