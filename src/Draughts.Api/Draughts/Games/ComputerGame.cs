@@ -94,13 +94,13 @@ namespace Draughts.Api.Draughts
                 _player1.SendGameUpdatedAsync(
                     Board.ColourToMove,
                     Board,
-                    Board.GetPossibleMoves(Board.ColourToMove),
+                    Board.GetPossibleMoves(),
                     _previousMove),
 
                 _player2.SendGameUpdatedAsync(
                     Board.ColourToMove,
                     Board,
-                    Board.GetPossibleMoves(Board.ColourToMove),
+                    Board.GetPossibleMoves(),
                     _previousMove)
             });
 

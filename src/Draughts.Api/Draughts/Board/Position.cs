@@ -13,6 +13,11 @@ namespace Draughts.Api.Draughts
             Y = y;
         }
 
+        public Position Clone()
+        {
+            return new(X, Y);
+        }
+        
         public int[] AsTransportable() => this;
 
         public static implicit operator Position((int, int) value)

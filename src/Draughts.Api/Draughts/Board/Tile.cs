@@ -11,6 +11,14 @@
         {
             Piece = piece;
         }
+
+        public Tile Clone()
+        {
+            return new()
+            {
+                Piece = Piece?.Clone()
+            };
+        }
         
         public static Tile Empty => new ();
         public static Tile WhitePiece => new(Piece.White());

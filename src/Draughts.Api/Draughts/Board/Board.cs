@@ -19,15 +19,15 @@ namespace Draughts.Api.Draughts
             " w w w w"
         };
 
-        /*private static readonly string[] DebugBoard =
+        /*private static readonly string[] DefaultBoard =
         {
             "        ",
             "        ",
             "        ",
+            " B b    ",
             "        ",
-            "    B   ",
+            " w b    ",
             "        ",
-            "      W ",
             "        "
         };*/
         
@@ -35,6 +35,8 @@ namespace Draughts.Api.Draughts
         public PieceColour ColourToMove { get; private set; }
         public Position PositionToMoveAgain { get; private set; }
         public PieceColour ColourJustMoved { get; private set; }
+
+        private List<Move> _possibleMoves;
 
         public Board()
         {
@@ -63,6 +65,18 @@ namespace Draughts.Api.Draughts
             
             PromoteKings();
         }
+        
+        internal Board(Tile[,] tiles)
+        {
+            Tiles = new Tile[8, 8];
+            for (var y = 0; y < 8; y++)
+            {
+                for (var x = 0; x < 8; x++)
+                {
+                    Tiles[x, y] = tiles[x, y].Clone();
+                }
+            }
+        }
 
         public MoveResult MovePiece(Move move)
         {
@@ -79,6 +93,7 @@ namespace Draughts.Api.Draughts
                 Tiles[move.Origin.X, move.Origin.Y].Piece = null;
                 Tiles[move.Jumped.X, move.Jumped.Y].Piece = null;
                 
+                _possibleMoves = null;
                 PositionToMoveAgain = move.Destination;
                 var possibleExtraMoves = GetPossibleMoves(move.Destination);
                 ColourJustMoved = piece.Colour;
@@ -98,6 +113,7 @@ namespace Draughts.Api.Draughts
             Tiles[move.Destination.X, move.Destination.Y].Piece = piece;
             Tiles[move.Origin.X, move.Origin.Y].Piece = null;
             
+            _possibleMoves = null;
             PositionToMoveAgain = null;
             ColourJustMoved = piece.Colour;
             PromoteKings();
@@ -114,8 +130,50 @@ namespace Draughts.Api.Draughts
                 ? MoveResult.Invalid()
                 : MovePiece(move);
         }
+        
+        public List<Move> GetPossibleMoves()
+        {
+            if (_possibleMoves is not null)
+                return _possibleMoves;
+            
+            List<Move> possibleMoves = new();
+            var jumpingMoveAvailable = false;
 
-        public List<Move> GetPossibleMoves(Position origin)
+            if (PositionToMoveAgain is not null)
+            {
+                var tile = Tiles[PositionToMoveAgain.X, PositionToMoveAgain.Y];
+                if (!tile.IsOccupied || tile.Piece.Colour != ColourToMove)
+                    return possibleMoves;
+                
+                return GetPossibleMoves(PositionToMoveAgain);
+            }
+            
+            for (var y = 0; y < 8; y++)
+            {
+                for (var x = 0; x < 8; x++)
+                {
+                    var tile = Tiles[x, y];
+                    if (!tile.IsOccupied || tile.Piece.Colour != ColourToMove)
+                        continue;
+
+                    var moves = GetPossibleMoves((x, y));
+                    if (!jumpingMoveAvailable && moves.Any(m => m.IsJumping))
+                        jumpingMoveAvailable = true;
+                    possibleMoves.AddRange(moves);
+                }
+            }
+
+            if (jumpingMoveAvailable)
+                possibleMoves.RemoveAll(x => !x.IsJumping);
+            
+            // Order by the most advanced pieces, these are likely to have better
+            // rated moves so Alpha/Beta pruning will be faster
+            if(ColourToMove == PieceColour.Black) possibleMoves.Reverse();
+            _possibleMoves = possibleMoves;
+            return possibleMoves;
+        }
+
+        private List<Move> GetPossibleMoves(Position origin)
         {
             List<Move> possibleMoves = new();
             
@@ -175,44 +233,10 @@ namespace Draughts.Api.Draughts
 
             if (jumpingMoveAvailable)
                 possibleMoves.RemoveAll(x => !x.IsJumping);
-
+            
             return possibleMoves;
         }
-
-        public List<Move> GetPossibleMoves(PieceColour pieceColour)
-        {
-            List<Move> possibleMoves = new();
-            var jumpingMoveAvailable = false;
-
-            if (PositionToMoveAgain is not null)
-            {
-                var tile = Tiles[PositionToMoveAgain.X, PositionToMoveAgain.Y];
-                if (!tile.IsOccupied || tile.Piece.Colour != pieceColour)
-                    return possibleMoves;
-                
-                return GetPossibleMoves(PositionToMoveAgain);
-            }
-            
-            for (var x = 0; x < 8; x++)
-            {
-                for (var y = 0; y < 8; y++)
-                {
-                    var tile = Tiles[x, y];
-                    if (!tile.IsOccupied || tile.Piece.Colour != pieceColour)
-                        continue;
-
-                    var moves = GetPossibleMoves((x, y));
-                    if (!jumpingMoveAvailable && moves.Any(m => m.IsJumping))
-                        jumpingMoveAvailable = true;
-                    possibleMoves.AddRange(moves);
-                }
-            }
-            
-            if (jumpingMoveAvailable)
-                possibleMoves.RemoveAll(x => !x.IsJumping);
-            return possibleMoves;
-        }
-
+        
         public bool GetIsWon(out PieceColour? winner)
         {
             var allPiecesEliminated = true;
@@ -287,27 +311,14 @@ namespace Draughts.Api.Draughts
             }
         }
 
-        public string GetDebugString()
+        public Board Clone()
         {
-            var debug = "";
-            for (var y = 0; y < 8; y++)
+            return new(Tiles)
             {
-                for (var x = 0; x < 8; x++)
-                {
-                    var tile = Tiles[x, y];
-                    debug += Tiles[x, y].IsOccupied switch
-                    {
-                        false => " ",
-                        true when tile.Piece.Colour == PieceColour.White && tile.Piece.IsKing => "W",
-                        true when tile.Piece.Colour == PieceColour.White && !tile.Piece.IsKing => "w",
-                        true when tile.Piece.Colour == PieceColour.Black && tile.Piece.IsKing => "B",
-                        true when tile.Piece.Colour == PieceColour.Black && !tile.Piece.IsKing => "b",
-                        _ => throw new ArgumentOutOfRangeException()
-                    };
-                }
-            }
-
-            return debug;
+                ColourToMove = ColourToMove,
+                PositionToMoveAgain = PositionToMoveAgain?.Clone(),
+                ColourJustMoved = ColourJustMoved
+            };
         }
     }
 }

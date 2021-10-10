@@ -17,8 +17,8 @@ namespace Draughts.Api.Controllers
         [HttpPost("game/create")]
         public IActionResult CreateGame([Required] [FromBody] GameCreateOptions options)
         {
-            if (options.Depth is < 0 or > 6)
-                return BadRequest();
+            //if (options.Depth is < 0 or > 6)
+            //    return BadRequest();
             
             var game = _gameService.CreateGame(options);
             return new JsonResult(game.GameCode);

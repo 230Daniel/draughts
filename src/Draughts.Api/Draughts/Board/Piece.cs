@@ -11,6 +11,11 @@
             IsKing = isKing;
         }
 
+        public Piece Clone()
+        {
+            return new(Colour, IsKing);
+        }
+        
         public static Piece White()
             => new(PieceColour.White);
         

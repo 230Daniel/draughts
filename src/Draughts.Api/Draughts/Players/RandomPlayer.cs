@@ -29,7 +29,7 @@ namespace Draughts.Api.Draughts.Players
                 if (pieceColour != PieceColour) return;
                 await Task.Delay(1000);
 
-                var bestMove = _engine.FindRandomMove(board, pieceColour);
+                var bestMove = _engine.FindRandomMove(board);
                 await OnMoveSubmitted.Invoke(this, bestMove.Item1, bestMove.Item2);
             });
             return Task.CompletedTask;

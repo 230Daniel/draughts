@@ -16,7 +16,7 @@ export default class CreateGame extends React.Component{
 
 			opponent: 0,
 			algorithm: 0,
-			depth: 4,
+			depth: 5,
 			variant: 0,
 			side: 0
 		}
@@ -81,12 +81,11 @@ export default class CreateGame extends React.Component{
 						<div className="menu-box-input">
 							<span>Depth</span>
 							<select defaultValue={this.state.depth} onChange={(e) => { this.setState({depth: parseInt(e.target.value)}); }}>
-							<option value="1">1 move</option>
-							<option value="2">2 moves</option>
-							<option value="3">3 moves</option>
-							<option value="4">4 moves</option>
-							<option value="5">5 moves</option>
-							<option value="6">6 moves</option>
+							<option value="1">Blindfolded (1 move)</option>
+							<option value="3">Beginner (3 moves)</option>
+							<option value="5">Standard (5 moves)</option>
+							<option value="7">Advanced (7 moves)</option>
+							<option value="9">Expert (9 moves)</option>
 							</select>
 						</div>
 					}
